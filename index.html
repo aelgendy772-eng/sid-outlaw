@@ -1,361 +1,284 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SID Intelligence Portal | Outlaw Server</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-dark: #0a0c10;
-            --panel-bg: rgba(13, 17, 23, 0.9);
-            --border-color: rgba(0, 255, 136, 0.2);
-            --primary-glow: #00ff88;
-            --secondary-glow: #00bfff;
-            --text-main: #e6edf3;
-            --text-muted: #8b949e;
-            --danger: #ff4d4d;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 7, 10, 0.95); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-        }
-
-        .login-box {
-            background: var(--panel-bg); border: 2px solid var(--primary-glow);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
-            padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center;
-        }
-
-        .login-box h2 { color: var(--primary-glow); margin-bottom: 10px; font-size: 26px; }
-        .login-box p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; }
-        .login-box input {
-            width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--border-color); border-radius: 8px; color: #fff;
-            font-size: 18px; text-align: center; letter-spacing: 5px; margin-bottom: 20px;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #00ff88, #00bfff); color: #05070a;
-            border: none; padding: 12px 25px; font-weight: 700; border-radius: 8px;
-            cursor: pointer; width: 100%; font-size: 16px;
-        }
-        .btn:hover { opacity: 0.9; }
-        .error-msg { color: var(--danger); margin-top: 15px; font-size: 14px; display: none; }
-
-        #main-app { display: none; max-width: 1200px; margin: 0 auto; }
-
-        header {
-            background: var(--panel-bg); border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 20px; display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;
-        }
-
-        .logo-area h1 { color: var(--primary-glow); font-size: 22px; }
-        .logo-area span { color: var(--text-muted); font-size: 12px; }
-
-        .role-badge {
-            background: rgba(0, 191, 255, 0.15); border: 1px solid var(--secondary-glow);
-            color: var(--secondary-glow); padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: 700;
-        }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .tab-btn.active { background: rgba(0, 255, 136, 0.1); color: var(--primary-glow); border-color: var(--primary-glow); }
-
-        .content-section { display: none; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; }
-        .content-section.active { display: block; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-header h2 { font-size: 18px; color: var(--text-main); }
-
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: var(--text-muted); font-size: 13px; background: rgba(0,0,0,0.2); }
-        td { font-size: 14px; }
-
-        .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .status-online { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
-        .status-mission { background: rgba(0, 191, 255, 0.15); color: #00bfff; }
-        .status-offline { background: rgba(139, 148, 158, 0.15); color: #8b949e; }
-
-        .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border-color); background: transparent; color: #fff; }
-        .btn-danger { color: var(--danger); border-color: rgba(255,77,77,0.3); }
-
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .info-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
-        .info-card h3 { color: var(--secondary-glow); margin-bottom: 8px; font-size: 15px; }
-        .info-card p { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: var(--panel-bg); border: 1px solid var(--primary-glow); padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 12px; color: var(--text-muted); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-size: 13px; }
-        .form-group textarea { height: 80px; }
-        .admin-only { display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SID Intelligence Portal | Outlaw Server</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg-dark:#0a0c10;--panel-bg:rgba(13,17,23,.9);--border-color:rgba(0,255,136,.2);--primary-glow:#00ff88;--secondary-glow:#00bfff;--text-main:#e6edf3;--text-muted:#8b949e;--danger:#ff4d4d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{color-scheme:dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',Tahoma,sans-serif}
+body{background:var(--bg-dark);color:var(--text-main);min-height:100vh;padding:20px}
+#login-screen{position:fixed;inset:0;background:rgba(5,7,10,.95);backdrop-filter:blur(10px);display:flex;justify-content:center;align-items:center;z-index:1000}
+.login-box{background:var(--panel-bg);border:2px solid var(--primary-glow);box-shadow:0 0 30px rgba(0,255,136,.2);padding:40px;border-radius:15px;width:100%;max-width:400px;text-align:center}
+.login-box h2{color:var(--primary-glow);margin-bottom:10px;font-size:26px}
+.login-box p{color:var(--text-muted);margin-bottom:25px;font-size:14px}
+.login-box input{width:100%;padding:12px;background:rgba(0,0,0,.6);border:1px solid var(--border-color);border-radius:8px;color:#fff;font-size:18px;text-align:center;letter-spacing:5px;margin-bottom:20px}
+.btn{background:linear-gradient(135deg,#00ff88,#00bfff);color:#05070a;border:none;padding:12px 25px;font-weight:700;border-radius:8px;cursor:pointer;width:100%;font-size:16px}
+.btn:hover{opacity:.9}
+.error-msg{color:var(--danger);margin-top:15px;font-size:14px;display:none}
+#main-app{display:none;max-width:1200px;margin:0 auto}
+header{background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:15px}
+.logo-area h1{color:var(--primary-glow);font-size:22px}
+.logo-area span{color:var(--text-muted);font-size:12px}
+.role-badge{background:rgba(0,191,255,.15);border:1px solid var(--secondary-glow);color:var(--secondary-glow);padding:6px 15px;border-radius:20px;font-size:13px;font-weight:700}
+.sync{font-size:12px;color:var(--text-muted)}
+.sync.ok{color:var(--primary-glow)}
+.sync.bad{color:var(--danger)}
+.tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{background:var(--panel-bg);border:1px solid var(--border-color);color:var(--text-muted);padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600}
+.tab-btn.active{background:rgba(0,255,136,.1);color:var(--primary-glow);border-color:var(--primary-glow)}
+.content-section{display:none;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:25px}
+.content-section.active{display:block}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.section-header h2{font-size:18px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:right}
+th,td{padding:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+th{color:var(--text-muted);font-size:13px;background:rgba(0,0,0,.2)}
+td{font-size:14px}
+.badge-status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.status-online{background:rgba(0,255,136,.15);color:#00ff88}
+.status-mission{background:rgba(0,191,255,.15);color:#00bfff}
+.status-offline{background:rgba(139,148,158,.15);color:#8b949e}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border-color);background:transparent;color:#fff}
+.btn-danger{color:var(--danger);border-color:rgba(255,77,77,.3)}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+.info-card{background:rgba(0,0,0,.3);border:1px solid var(--border-color);border-radius:8px;padding:15px}
+.info-card h3{color:var(--secondary-glow);margin-bottom:8px;font-size:15px}
+.info-card p{color:var(--text-muted);font-size:13px;line-height:1.5;margin-bottom:10px;white-space:pre-wrap}
+.empty{color:var(--text-muted);font-size:14px;padding:10px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center;z-index:2000;padding:15px}
+.modal-content{background:#0d1117;border:1px solid var(--primary-glow);padding:25px;border-radius:12px;width:100%;max-width:400px}
+.modal-content h3{margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;margin-bottom:5px;font-size:12px;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px;background:rgba(0,0,0,.5);border:1px solid var(--border-color);border-radius:6px;color:#fff;font-size:13px}
+.form-group textarea{height:80px}
+.admin-only{display:none}
+</style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>SID INTELLIGENCE</h2>
-            <p>أوتلاو سيرفر - دخول النظام الأمني</p>
-            <input type="password" id="pin-input" placeholder="الرمز السري" maxlength="6">
-            <button class="btn" onclick="checkPin()">دخول</button>
-            <div id="error-msg" class="error-msg">رمز الدخول غير صحيح!</div>
-        </div>
+<div id="login-screen">
+  <div class="login-box">
+    <h2>SID INTELLIGENCE</h2>
+    <p>أوتلاو سيرفر - دخول النظام الأمني</p>
+    <input type="password" id="pin-input" placeholder="الرمز السري" maxlength="6">
+    <button class="btn" onclick="checkPin()">دخول</button>
+    <div id="error-msg" class="error-msg">رمز الدخول غير صحيح!</div>
+  </div>
+</div>
+
+<div id="main-app">
+  <header>
+    <div class="logo-area">
+      <h1>SID DIVISION</h1>
+      <span>النظام المركزي للاستخبارات</span>
     </div>
-
-    <div id="main-app">
-        <header>
-            <div class="logo-area">
-                <h1>SID DIVISION</h1>
-                <span>النظام المركزي للاستخبارات</span>
-            </div>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <div id="role-display" class="role-badge">عضو استخبارات</div>
-                <button class="btn-sm" onclick="location.reload()" style="border-color:var(--primary-glow); color:var(--primary-glow);">تحديث</button>
-            </div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('roster', this)">جدول الأفراد</button>
-            <button class="tab-btn" onclick="switchTab('safehouses', this)">أماكن الاجتماعات</button>
-            <button class="tab-btn" onclick="switchTab('radios', this)">ترددات الراديو</button>
-            <button class="tab-btn" onclick="switchTab('reports', this)">التقارير السرية</button>
-        </div>
-
-        <!-- الأفراد -->
-        <div id="roster-section" class="content-section active">
-            <div class="section-header">
-                <h2>قائمة الأفراد</h2>
-                <button class="btn admin-only" style="width:auto; padding:6px 12px; font-size:13px;" onclick="openModal('agent-modal')">إضافة عميل</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الشارة</th>
-                        <th>الاسم</th>
-                        <th>الرتبة</th>
-                        <th>الحالة</th>
-                        <th class="admin-only">إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody id="agents-tbody"></tbody>
-            </table>
-        </div>
-
-        <!-- أماكن الاجتماعات -->
-        <div id="safehouses-section" class="content-section">
-            <div class="section-header">
-                <h2>أماكن الاجتماعات والبيوت الآمنة</h2>
-                <button class="btn admin-only" style="width:auto; padding:6px 12px; font-size:13px;" onclick="openModal('sh-modal')">إضافة موقع</button>
-            </div>
-            <div class="grid-cards" id="sh-grid"></div>
-        </div>
-
-        <!-- الراديو -->
-        <div id="radios-section" class="content-section">
-            <div class="section-header">
-                <h2>ترددات الراديو السرية</h2>
-                <button class="btn admin-only" style="width:auto; padding:6px 12px; font-size:13px;" onclick="openModal('rd-modal')">إضافة تردد</button>
-            </div>
-            <div class="grid-cards" id="rd-grid"></div>
-        </div>
-
-        <!-- التقارير -->
-        <div id="reports-section" class="content-section">
-            <div class="section-header">
-                <h2>التقارير الاستخباراتية</h2>
-                <button class="btn admin-only" style="width:auto; padding:6px 12px; font-size:13px;" onclick="openModal('rep-modal')">إضافة تقرير</button>
-            </div>
-            <div class="grid-cards" id="rep-grid"></div>
-        </div>
+    <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
+      <span id="sync" class="sync">جاري الاتصال...</span>
+      <div id="role-display" class="role-badge">عضو استخبارات</div>
     </div>
+  </header>
 
-    <!-- المودلز -->
-    <div id="agent-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة عميل</h3>
-            <div class="form-group"><label>الاسم</label><input type="text" id="ag-name"></div>
-            <div class="form-group"><label>الرتبة</label><input type="text" id="ag-rank"></div>
-            <div class="form-group"><label>الشارة</label><input type="text" id="ag-badge"></div>
-            <div class="form-group"><label>الحالة</label><select id="ag-status"><option value="online">متواجد</option><option value="mission">في مهمة</option><option value="offline">غير متواجد</option></select></div>
-            <button class="btn" onclick="addAgent()">حفظ</button>
-            <button class="btn-sm btn-danger" style="width:100%; margin-top:8px;" onclick="closeModals()">إلغاء</button>
-        </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('roster', this)">جدول الأفراد</button>
+    <button class="tab-btn" onclick="switchTab('safehouses', this)">أماكن الاجتماعات</button>
+    <button class="tab-btn" onclick="switchTab('radios', this)">ترددات الراديو</button>
+    <button class="tab-btn" onclick="switchTab('reports', this)">التقارير السرية</button>
+  </div>
+
+  <div id="roster-section" class="content-section active">
+    <div class="section-header">
+      <h2>قائمة الأفراد</h2>
+      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('agent-modal')">إضافة عميل</button>
     </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الشارة</th><th>الاسم</th><th>الرتبة</th><th>الحالة</th><th class="admin-only">إجراءات</th></tr></thead>
+      <tbody id="agents-tbody"></tbody>
+    </table></div>
+  </div>
 
-    <div id="sh-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة موقع</h3>
-            <div class="form-group"><label>اسم الموقع</label><input type="text" id="sh-title"></div>
-            <div class="form-group"><label>الوصف</label><textarea id="sh-desc"></textarea></div>
-            <button class="btn" onclick="addSH()">حفظ</button>
-            <button class="btn-sm btn-danger" style="width:100%; margin-top:8px;" onclick="closeModals()">إلغاء</button>
-        </div>
+  <div id="safehouses-section" class="content-section">
+    <div class="section-header">
+      <h2>أماكن الاجتماعات والبيوت الآمنة</h2>
+      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('sh-modal')">إضافة موقع</button>
     </div>
+    <div class="grid-cards" id="sh-grid"></div>
+  </div>
 
-    <div id="rd-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة تردد</h3>
-            <div class="form-group"><label>اسم القناة</label><input type="text" id="rd-name"></div>
-            <div class="form-group"><label>التردد</label><input type="text" id="rd-freq"></div>
-            <button class="btn" onclick="addRD()">حفظ</button>
-            <button class="btn-sm btn-danger" style="width:100%; margin-top:8px;" onclick="closeModals()">إلغاء</button>
-        </div>
+  <div id="radios-section" class="content-section">
+    <div class="section-header">
+      <h2>ترددات الراديو السرية</h2>
+      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('rd-modal')">إضافة تردد</button>
     </div>
+    <div class="grid-cards" id="rd-grid"></div>
+  </div>
 
-    <div id="rep-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة تقرير</h3>
-            <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
-            <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
-            <button class="btn" onclick="addRep()">حفظ</button>
-            <button class="btn-sm btn-danger" style="width:100%; margin-top:8px;" onclick="closeModals()">إلغاء</button>
-        </div>
+  <div id="reports-section" class="content-section">
+    <div class="section-header">
+      <h2>التقارير الاستخباراتية</h2>
+      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('rep-modal')">إضافة تقرير</button>
     </div>
+    <div class="grid-cards" id="rep-grid"></div>
+  </div>
+</div>
 
-    <script>
-        let isAdmin = false;
-        
-        // جلب البيانات من الذاكرة المشتركة أو البدء ببيانات أساسية
-        let data = JSON.parse(localStorage.getItem('sid_outlaw_portal')) || {
-            agents: [{name: "Kareem", rank: "قائد الفرقة", badge: "SID-001", status: "online"}],
-            safehouses: [{title: "المقر الرئيسي", desc: "قبو تحت الأرض"}],
-            radios: [{name: "قناة الطوارئ", freq: "99.9 MHz"}],
-            reports: [{title: "حالة طوارئ", desc: "تم تأمين الميناء."}]
-        };
+<div id="agent-modal" class="modal"><div class="modal-content">
+  <h3>إضافة عميل</h3>
+  <div class="form-group"><label>الاسم</label><input type="text" id="ag-name"></div>
+  <div class="form-group"><label>الرتبة</label><input type="text" id="ag-rank"></div>
+  <div class="form-group"><label>الشارة</label><input type="text" id="ag-badge"></div>
+  <div class="form-group"><label>الحالة</label><select id="ag-status"><option value="online">متواجد</option><option value="mission">في مهمة</option><option value="offline">غير متواجد</option></select></div>
+  <button class="btn" onclick="addAgent()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
 
-        function checkPin() {
-            const pin = document.getElementById('pin-input').value;
-            if(pin === '12459') {
-                isAdmin = true;
-                document.getElementById('role-display').innerText = "🔓 قائد الفرقة (صلاحية كاملة)";
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
-                startApp();
-            } else if(pin === '7365') {
-                isAdmin = false;
-                document.getElementById('role-display').innerText = "👁️ عضو (مشاهدة فقط)";
-                startApp();
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-            }
-        }
+<div id="sh-modal" class="modal"><div class="modal-content">
+  <h3>إضافة موقع</h3>
+  <div class="form-group"><label>اسم الموقع</label><input type="text" id="sh-title"></div>
+  <div class="form-group"><label>الوصف</label><textarea id="sh-desc"></textarea></div>
+  <button class="btn" onclick="addSH()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
 
-        function startApp() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            render();
-        }
+<div id="rd-modal" class="modal"><div class="modal-content">
+  <h3>إضافة تردد</h3>
+  <div class="form-group"><label>اسم القناة</label><input type="text" id="rd-name"></div>
+  <div class="form-group"><label>التردد</label><input type="text" id="rd-freq"></div>
+  <button class="btn" onclick="addRD()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
 
-        function saveData() {
-            localStorage.setItem('sid_outlaw_portal', JSON.stringify(data));
-            render();
-        }
+<div id="rep-modal" class="modal"><div class="modal-content">
+  <h3>إضافة تقرير</h3>
+  <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
+  <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
+  <button class="btn" onclick="addRep()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
 
-        function switchTab(tab, btn) {
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tab + '-section').classList.add('active');
-            btn.classList.add('active');
-        }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        function render() {
-            // تحديث البيانات من التخزين المحلي فوراً لضمان عدم ضياع شيء
-            let saved = localStorage.getItem('sid_outlaw_portal');
-            if(saved) {
-                data = JSON.parse(saved);
-            }
+// ===== ضع رابط قاعدة البيانات هنا (من Firebase Realtime Database) =====
+const DATABASE_URL = "https://sid-outlaw-default-rtdb.firebaseio.com";
+// مثال: "https://sid-outlaw-default-rtdb.firebaseio.com"
+// ======================================================================
 
-            // الأفراد
-            let agHtml = '';
-            if(data.agents) {
-                data.agents.forEach((ag, i) => {
-                    let stClass = ag.status === 'online' ? 'status-online' : (ag.status === 'mission' ? 'status-mission' : 'status-offline');
-                    let stText = ag.status === 'online' ? 'متواجد' : (ag.status === 'mission' ? 'في مهمة' : 'غير متواجد');
-                    let act = isAdmin ? `<td><button class="btn-sm btn-danger" onclick="del('agents', ${i})">حذف</button></td>` : '';
-                    agHtml += `<tr><td><code>${ag.badge}</code></td><td><strong>${ag.name}</strong></td><td>${ag.rank}</td><td><span class="badge-status ${stClass}">${stText}</span></td>${act}</tr>`;
-                });
-            }
-            document.getElementById('agents-tbody').innerHTML = agHtml;
+let isAdmin = false;
+let db = null;
+const store = { agents: [], safehouses: [], radios: [], reports: [] };
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function setSync(text, cls) { const el = $('sync'); el.textContent = text; el.className = 'sync ' + (cls || ''); }
 
-            // أماكن
-            let shHtml = '';
-            if(data.safehouses) {
-                data.safehouses.forEach((sh, i) => {
-                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('safehouses', ${i})">حذف</button>` : '';
-                    shHtml += `<div class="info-card"><h3>${sh.title}</h3><p>${sh.desc}</p>${act}</div>`;
-                });
-            }
-            document.getElementById('sh-grid').innerHTML = shHtml;
+window.checkPin = function () {
+  const pin = $('pin-input').value;
+  if (pin === '12459') {
+    isAdmin = true;
+    $('role-display').innerText = '🔓 قائد الفرقة (صلاحية كاملة)';
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
+    startApp();
+  } else if (pin === '7365') {
+    isAdmin = false;
+    $('role-display').innerText = '👁️ عضو (مشاهدة فقط)';
+    startApp();
+  } else {
+    $('error-msg').style.display = 'block';
+  }
+};
 
-            // راديو
-            let rdHtml = '';
-            if(data.radios) {
-                data.radios.forEach((rd, i) => {
-                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('radios', ${i})">حذف</button>` : '';
-                    rdHtml += `<div class="info-card"><h3>${rd.name}</h3><p>التردد: <code style="color:var(--primary-glow);">${rd.freq}</code></p>${act}</div>`;
-                });
-            }
-            document.getElementById('rd-grid').innerHTML = rdHtml;
+function startApp() {
+  $('login-screen').style.display = 'none';
+  $('main-app').style.display = 'block';
+  render();
+  connect();
+}
 
-            // تقارير
-            let repHtml = '';
-            if(data.reports) {
-                data.reports.forEach((rep, i) => {
-                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('reports', ${i})">حذف</button>` : '';
-                    repHtml += `<div class="info-card"><h3>${rep.title}</h3><p>${rep.desc}</p>${act}</div>`;
-                });
-            }
-            document.getElementById('rep-grid').innerHTML = repHtml;
-        }
+function connect() {
+  if (!DATABASE_URL || DATABASE_URL.startsWith('PUT_')) { setSync('لم يتم ربط قاعدة البيانات بعد', 'bad'); return; }
+  try {
+    db = getDatabase(initializeApp({ databaseURL: DATABASE_URL }));
+  } catch (e) { setSync('خطأ في إعداد قاعدة البيانات', 'bad'); return; }
+  const timer = setTimeout(() => setSync('تعذر الوصول للبيانات حالياً', 'bad'), 10000);
+  Object.keys(store).forEach(name => {
+    onValue(ref(db, name), snap => {
+      clearTimeout(timer);
+      const v = snap.val() || {};
+      store[name] = Object.entries(v).map(([id, o]) => ({ id, ...o })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      setSync('متصل ومتزامن ✓', 'ok');
+      render();
+    }, () => { clearTimeout(timer); setSync('خطأ في الاتصال أو الصلاحيات', 'bad'); });
+  });
+}
 
-        function openModal(id) { if(isAdmin) document.getElementById(id).style.display = 'flex'; }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+async function add(name, obj) {
+  if (!isAdmin || !db) return;
+  try { await push(ref(db, name), { ...obj, createdAt: Date.now() }); }
+  catch (e) { alert('تعذر الحفظ. تأكد من قواعد قاعدة البيانات.'); }
+}
+window.del = async function (name, id) {
+  if (!isAdmin || !db) return;
+  try { await remove(ref(db, name + '/' + id)); }
+  catch (e) { alert('تعذر الحذف.'); }
+};
 
-        function addAgent() {
-            if(!isAdmin) return;
-            data.agents = data.agents || [];
-            data.agents.push({name: document.getElementById('ag-name').value, rank: document.getElementById('ag-rank').value, badge: document.getElementById('ag-badge').value, status: document.getElementById('ag-status').value});
-            closeModals(); saveData();
-        }
-        function addSH() {
-            if(!isAdmin) return;
-            data.safehouses = data.safehouses || [];
-            data.safehouses.push({title: document.getElementById('sh-title').value, desc: document.getElementById('sh-desc').value});
-            closeModals(); saveData();
-        }
-        function addRD() {
-            if(!isAdmin) return;
-            data.radios = data.radios || [];
-            data.radios.push({name: document.getElementById('rd-name').value, freq: document.getElementById('rd-freq').value});
-            closeModals(); saveData();
-        }
-        function addRep() {
-            if(!isAdmin) return;
-            data.reports = data.reports || [];
-            data.reports.push({title: document.getElementById('rep-title').system || document.getElementById('rep-title').value, desc: document.getElementById('rep-desc').value});
-            closeModals(); saveData();
-        }
-        function del(type, i) {
-            if(!isAdmin) return;
-            data[type].splice(i, 1);
-            saveData();
-        }
-    </script>
+window.switchTab = function (tab, btn) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  $(tab + '-section').classList.add('active');
+  btn.classList.add('active');
+};
+
+function delBtn(name, id) { return isAdmin ? `<button class="btn-sm btn-danger" onclick="del('${name}','${esc(id)}')">حذف</button>` : ''; }
+
+function render() {
+  $('agents-tbody').innerHTML = store.agents.map(ag => {
+    const cls = ag.status === 'online' ? 'status-online' : ag.status === 'mission' ? 'status-mission' : 'status-offline';
+    const txt = ag.status === 'online' ? 'متواجد' : ag.status === 'mission' ? 'في مهمة' : 'غير متواجد';
+    const act = isAdmin ? `<td>${delBtn('agents', ag.id)}</td>` : '';
+    return `<tr><td><code>${esc(ag.badge)}</code></td><td><strong>${esc(ag.name)}</strong></td><td>${esc(ag.rank)}</td><td><span class="badge-status ${cls}">${txt}</span></td>${act}</tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">لا يوجد أفراد بعد</td></tr>';
+
+  $('sh-grid').innerHTML = store.safehouses.map(sh =>
+    `<div class="info-card"><h3>${esc(sh.title)}</h3><p>${esc(sh.desc)}</p>${delBtn('safehouses', sh.id)}</div>`
+  ).join('') || '<div class="empty">لا توجد مواقع بعد</div>';
+
+  $('rd-grid').innerHTML = store.radios.map(rd =>
+    `<div class="info-card"><h3>${esc(rd.name)}</h3><p>التردد: <code style="color:var(--primary-glow)">${esc(rd.freq)}</code></p>${delBtn('radios', rd.id)}</div>`
+  ).join('') || '<div class="empty">لا توجد ترددات بعد</div>';
+
+  $('rep-grid').innerHTML = store.reports.map(rep =>
+    `<div class="info-card"><h3>${esc(rep.title)}</h3><p>${esc(rep.desc)}</p>${delBtn('reports', rep.id)}</div>`
+  ).join('') || '<div class="empty">لا توجد تقارير بعد</div>';
+}
+
+window.openModal = function (id) { if (isAdmin) $(id).style.display = 'flex'; };
+window.closeModals = function () { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
+function clearFields(...ids) { ids.forEach(i => { $(i).value = ''; }); }
+
+window.addAgent = function () {
+  add('agents', { name: $('ag-name').value, rank: $('ag-rank').value, badge: $('ag-badge').value, status: $('ag-status').value });
+  clearFields('ag-name', 'ag-rank', 'ag-badge'); closeModals();
+};
+window.addSH = function () {
+  add('safehouses', { title: $('sh-title').value, desc: $('sh-desc').value });
+  clearFields('sh-title', 'sh-desc'); closeModals();
+};
+window.addRD = function () {
+  add('radios', { name: $('rd-name').value, freq: $('rd-freq').value });
+  clearFields('rd-name', 'rd-freq'); closeModals();
+};
+window.addRep = function () {
+  add('reports', { title: $('rep-title').value, desc: $('rep-desc').value });
+  clearFields('rep-title', 'rep-desc'); closeModals();
+};
+
+$('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+</script>
 </body>
 </html>
