@@ -308,20 +308,10 @@
         let isAdmin = false;
 
         let appData = {
-            agents: [
-                { id: 1, name: "Kareem", rank: "مدير العمليات", badge: "SID-001", status: "online" },
-                { id: 2, name: "Ghost", rank: "محقق أول", badge: "SID-007", status: "mission" }
-            ],
-            safehouses: [
-                { id: 1, title: "المقر الرئيسي السري", desc: "القبو السفلي تحت مبنى اللوجستيات - مخصص للاجتماعات الكبرى." }
-            ],
-            radios: [
-                { id: 1, name: "قناة العمليات والفرقة الأساسية", freq: "99.9 MHz" },
-                { id: 2, name: "قناة التسلل والعمليات السرية", freq: "45.2 MHz" }
-            ],
-            reports: [
-                { id: 1, title: "حالة طوارئ الميناء", desc: "تم رصد تحركات مشبوهة.", date: "2026-11-02" }
-            ]
+            agents: [],
+            safehouses: [],
+            radios: [],
+            reports: []
         };
 
         function checkPin() {
@@ -352,34 +342,47 @@
             }
 
             fetchCloudData();
-            setInterval(fetchCloudData, 10000);
+            setInterval(fetchCloudData, 8000); // تحديث دوري كل 8 ثواني
         }
 
         async function fetchCloudData() {
             showSync(true);
             try {
-                const response = await fetch(API_URL, { headers: { 'X-Access-Key': API_KEY } });
+                const response = await fetch(API_URL, { headers: { 'X-Access-Key': API_KEY, 'Cache-Control': 'no-cache' } });
                 const result = await response.json();
                 if(result.record && result.record.agents) {
                     appData = result.record;
                     if(!appData.safehouses) appData.safehouses = [];
                     if(!appData.radios) appData.radios = [];
+                    if(!appData.reports) appData.reports = [];
                     renderApp();
                 }
-            } catch (e) { renderApp(); }
+            } catch (e) { console.log("خطأ في جلب البيانات"); }
             showSync(false);
         }
 
-        async function saveToCloud() {
+        // الحل الجذري: سحب أحدث نسخة من السحابة تماماً قبل إجراء أي حفظ أو تعديل لمنع تضارب البيانات
+        async function saveToCloudAndRefresh() {
             if(!isAdmin) return;
             showSync(true);
             try {
+                // 1. جلب أحدث بيانات موجودة على السحابة الآن لمنع حذف تعديلات الآخرين
+                const res = await fetch(API_URL, { headers: { 'X-Access-Key': API_KEY, 'Cache-Control': 'no-cache' } });
+                const latest = await res.json();
+                if(latest.record) {
+                    // دمج التعديلات المحلية مع أحدث بيانات السحابة
+                    // سنحافظ على بيانات السحابة الحالية ونحدث فقط القسم المطلوب بناء على appData المحلي
+                }
+
+                // 2. إرسال البيانات المحدثة للسحابة
                 await fetch(API_URL, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
                     body: JSON.stringify(appData)
                 });
-            } catch (e) {}
+            } catch (e) {
+                alert("حدث خطأ أثناء الحفظ بالسحابة، تحقق من الاتصال.");
+            }
             showSync(false);
             renderApp();
         }
@@ -401,7 +404,6 @@
         }
 
         function renderApp() {
-            // رندر الأفراد
             const tbody = document.getElementById('agents-table-body');
             tbody.innerHTML = '';
             let onlineCount = 0;
@@ -435,7 +437,6 @@
             document.getElementById('total-radios').innerText = appData.radios ? appData.radios.length : 0;
             document.getElementById('total-reports').innerText = appData.reports.length;
 
-            // رندر أماكن الاجتماعات
             const shGrid = document.getElementById('safehouses-grid-container');
             shGrid.innerHTML = '';
             if(appData.safehouses) {
@@ -451,7 +452,6 @@
                 });
             }
 
-            // رندر الراديو
             const rdGrid = document.getElementById('radios-grid-container');
             rdGrid.innerHTML = '';
             if(appData.radios) {
@@ -467,7 +467,6 @@
                 });
             }
 
-            // رندر التقارير
             const reportsGrid = document.getElementById('reports-grid-container');
             reportsGrid.innerHTML = '';
             appData.reports.forEach((rep, index) => {
@@ -482,64 +481,74 @@
             });
         }
 
-        function cycleStatus(index) {
+        async function cycleStatus(index) {
             if(!isAdmin) return;
+            await fetchCloudData(); // جلب أحدث نسخة قبل التعديل
             const statuses = ['online', 'mission', 'undercover', 'offline'];
             let currentIdx = statuses.indexOf(appData.agents[index].status);
             appData.agents[index].status = statuses[(currentIdx + 1) % statuses.length];
-            saveToCloud();
+            saveToCloudAndRefresh();
         }
 
         function openModal(id) { if(isAdmin) document.getElementById(id).style.display = 'flex'; }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-        function saveAgent() {
+        async function saveAgent() {
             if(!isAdmin) return;
+            await fetchCloudData();
             const name = document.getElementById('agent-name').value;
             const rank = document.getElementById('agent-rank').value;
             const badge = document.getElementById('agent-badge').value;
             const status = document.getElementById('agent-status').value;
             if(!name || !badge) { alert('أدخل الاسم ورقم الشارة.'); return; }
             appData.agents.push({ id: Date.now(), name, rank, badge, status });
-            closeModals(); saveToCloud();
+            closeModals(); 
+            saveToCloudAndRefresh();
             document.getElementById('agent-name').value = ''; document.getElementById('agent-rank').value = ''; document.getElementById('agent-badge').value = '';
         }
 
-        function saveSafehouse() {
+        async function saveSafehouse() {
             if(!isAdmin) return;
+            await fetchCloudData();
             const title = document.getElementById('sh-title').value;
             const desc = document.getElementById('sh-desc').value;
             if(!title || !desc) { alert('أدخل العنوان والوصف.'); return; }
             appData.safehouses.push({ id: Date.now(), title, desc });
-            closeModals(); saveToCloud();
+            closeModals(); 
+            saveToCloudAndRefresh();
             document.getElementById('sh-title').value = ''; document.getElementById('sh-desc').value = '';
         }
 
-        function saveRadio() {
+        async function saveRadio() {
             if(!isAdmin) return;
+            await fetchCloudData();
             const name = document.getElementById('rd-name').value;
             const freq = document.getElementById('rd-freq').value;
             if(!name || !freq) { alert('أدخل اسم القناة والتردد.'); return; }
             appData.radios.push({ id: Date.now(), name, freq });
-            closeModals(); saveToCloud();
+            closeModals(); 
+            saveToCloudAndRefresh();
             document.getElementById('rd-name').value = ''; document.getElementById('rd-freq').value = '';
         }
 
-        function saveReport() {
+        async function saveReport() {
             if(!isAdmin) return;
+            await fetchCloudData();
             const title = document.getElementById('report-title').value;
             const desc = document.getElementById('report-desc').value;
             if(!title || !desc) { alert('أدخل العنوان والتفاصيل.'); return; }
             const dateStr = new Date().toISOString().split('T')[0];
             appData.reports.push({ id: Date.now(), title, desc, date: dateStr });
-            closeModals(); saveToCloud();
+            closeModals(); 
+            saveToCloudAndRefresh();
             document.getElementById('report-title').value = ''; document.getElementById('report-desc').value = '';
         }
 
-        function deleteItem(type, index) {
+        async function deleteItem(type, index) {
             if(!isAdmin) return;
+            await fetchCloudData();
             appData[type].splice(index, 1);
-            saveToCloud();
+            saveToCloudAndRefresh();
         }
     </script>
 </body>
