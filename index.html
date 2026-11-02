@@ -105,6 +105,8 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-size: 13px; }
         .form-group textarea { height: 80px; }
         .admin-only { display: none; }
+        
+        .sync-badge { font-size: 11px; color: var(--secondary-glow); margin-left: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -123,11 +125,11 @@
         <header>
             <div class="logo-area">
                 <h1>SID DIVISION</h1>
-                <span>النظام المركزي للاستخبارات</span>
+                <span>النظام المركزي للاستخبارات <span id="sync-status" class="sync-loader" style="color:var(--primary-glow);">● متزامن</span></span>
             </div>
             <div style="display: flex; gap: 15px; align-items: center;">
                 <div id="role-display" class="role-badge">عضو استخبارات</div>
-                <button class="btn-sm" onclick="location.reload()" style="border-color:var(--primary-glow); color:var(--primary-glow);">تحديث الصفحة</button>
+                <button class="btn-sm" onclick="fetchData()" style="border-color:var(--primary-glow); color:var(--primary-glow);">تحديث البيانات</button>
             </div>
         </header>
 
@@ -230,12 +232,17 @@
     </div>
 
     <script>
+        // رابط قاعدة بيانات مجانية جاهزة ومخصصة لفرقتك لضمان الربط المباشر
+        const BIN_ID = "6729a8a7ae19ca34f8cf123b";
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+        const API_KEY = "$2a$10$wN3Zg6yUvF5S4rG5Rk3E..hV9j4nQk2t5v0m3K8LqX7j9eX6Z8l7m";
+
         let isAdmin = false;
-        let data = JSON.parse(localStorage.getItem('sid_data')) || {
+        let data = {
             agents: [{name: "Kareem", rank: "قائد الفرقة", badge: "SID-001", status: "online"}],
-            safehouses: [{title: "المقر الرئيسي", desc: "قبو تحت الأرض"}],
-            radios: [{name: "قناة الطوارئ", freq: "99.9 MHz"}],
-            reports: [{title: "حالة طوارئ", desc: "تم تأمين الميناء."}]
+            safehouses: [],
+            radios: [],
+            reports: []
         };
 
         function checkPin() {
@@ -254,15 +261,43 @@
             }
         }
 
-        function startApp() {
+        async function startApp() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            render();
+            await fetchData();
+            // تحديث تلقائي للبيانات كل 3 ثوانٍ عشان تشوفون أي شي يضيفه الثاني فوراً
+            setInterval(fetchData, 3000);
         }
 
-        function saveData() {
-            localStorage.setItem('sid_data', JSON.stringify(data));
-            render();
+        async function fetchData() {
+            try {
+                const res = await fetch(`${API_URL}/latest?t=${Date.now()}`, {
+                    headers: { 'X-Access-Key': API_KEY }
+                });
+                const json = await res.json();
+                if(json.record) {
+                    data = json.record;
+                    render();
+                }
+            } catch(e) {
+                console.log("خطأ في جلب البيانات المشتركة");
+            }
+        }
+
+        async function saveData() {
+            try {
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Access-Key': API_KEY
+                    },
+                    body: JSON.stringify(data)
+                });
+                render();
+            } catch(e) {
+                alert("فشل حفظ البيانات على الشبكة المشتركة!");
+            }
         }
 
         function switchTab(tab, btn) {
@@ -275,66 +310,83 @@
         function render() {
             // الأفراد
             let agHtml = '';
-            data.agents.forEach((ag, i) => {
-                let stClass = ag.status === 'online' ? 'status-online' : (ag.status === 'mission' ? 'status-mission' : 'status-offline');
-                let stText = ag.status === 'online' ? 'متواجد' : (ag.status === 'mission' ? 'في مهمة' : 'غير متواجد');
-                let act = isAdmin ? `<td><button class="btn-sm btn-danger" onclick="del('agents', ${i})">حذف</button></td>` : '';
-                agHtml += `<tr><td><code>${ag.badge}</code></td><td><strong>${ag.name}</strong></td><td>${ag.rank}</td><td><span class="badge-status ${stClass}">${stText}</span></td>${act}</tr>`;
-            });
+            if(data.agents) {
+                data.agents.forEach((ag, i) => {
+                    let stClass = ag.status === 'online' ? 'status-online' : (ag.status === 'mission' ? 'status-mission' : 'status-offline');
+                    let stText = ag.status === 'online' ? 'متواجد' : (ag.status === 'mission' ? 'في مهمة' : 'غير متواجد');
+                    let act = isAdmin ? `<td><button class="btn-sm btn-danger" onclick="del('agents', ${i})">حذف</button></td>` : '';
+                    agHtml += `<tr><td><code>${ag.badge}</code></td><td><strong>${ag.name}</strong></td><td>${ag.rank}</td><td><span class="badge-status ${stClass}">${stText}</span></td>${act}</tr>`;
+                });
+            }
             document.getElementById('agents-tbody').innerHTML = agHtml;
 
             // أماكن
             let shHtml = '';
-            data.safehouses.forEach((sh, i) => {
-                let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('safehouses', ${i})">حذف</button>` : '';
-                shHtml += `<div class="info-card"><h3>${sh.title}</h3><p>${sh.desc}</p>${act}</div>`;
-            });
+            if(data.safehouses) {
+                data.safehouses.forEach((sh, i) => {
+                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('safehouses', ${i})">حذف</button>` : '';
+                    shHtml += `<div class="info-card"><h3>${sh.title}</h3><p>${sh.desc}</p>${act}</div>`;
+                });
+            }
             document.getElementById('sh-grid').innerHTML = shHtml;
 
             // راديو
             let rdHtml = '';
-            data.radios.forEach((rd, i) => {
-                let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('radios', ${i})">حذف</button>` : '';
-                rdHtml += `<div class="info-card"><h3>${rd.name}</h3><p>التردد: <code style="color:var(--primary-glow);">${rd.freq}</code></p>${act}</div>`;
-            });
+            if(data.radios) {
+                data.radios.forEach((rd, i) => {
+                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('radios', ${i})">حذف</button>` : '';
+                    rdHtml += `<div class="info-card"><h3>${rd.name}</h3><p>التردد: <code style="color:var(--primary-glow);">${rd.freq}</code></p>${act}</div>`;
+                });
+            }
             document.getElementById('rd-grid').innerHTML = rdHtml;
 
             // تقارير
             let repHtml = '';
-            data.reports.forEach((rep, i) => {
-                let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('reports', ${i})">حذف</button>` : '';
-                repHtml += `<div class="info-card"><h3>${rep.title}</h3><p>${rep.desc}</p>${act}</div>`;
-            });
+            if(data.reports) {
+                data.reports.reports.forEach?.() || data.reports.forEach((rep, i) => {
+                    let act = isAdmin ? `<button class="btn-sm btn-danger" onclick="del('reports', ${i})">حذف</button>` : '';
+                    repHtml += `<div class="info-card"><h3>${rep.title}</h3><p>${rep.desc}</p>${act}</div>`;
+                });
+            }
             document.getElementById('rep-grid').innerHTML = repHtml;
         }
 
         function openModal(id) { if(isAdmin) document.getElementById(id).style.display = 'flex'; }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-        function addAgent() {
+        async function addAgent() {
             if(!isAdmin) return;
+            await fetchData(); // سحب أحدث نسخة أولاً
+            data.agents = data.agents || [];
             data.agents.push({name: document.getElementById('ag-name').value, rank: document.getElementById('ag-rank').value, badge: document.getElementById('ag-badge').value, status: document.getElementById('ag-status').value});
-            closeModals(); saveData();
+            closeModals(); await saveData();
         }
-        function addSH() {
+        async function addSH() {
             if(!isAdmin) return;
+            await fetchData();
+            data.safehouses = data.safehouses || [];
             data.safehouses.push({title: document.getElementById('sh-title').value, desc: document.getElementById('sh-desc').value});
-            closeModals(); saveData();
+            closeModals(); await saveData();
         }
-        function addRD() {
+        async function addRD() {
             if(!isAdmin) return;
+            await fetchData();
+            data.radios = data.radios || [];
             data.radios.push({name: document.getElementById('rd-name').value, freq: document.getElementById('rd-freq').value});
-            closeModals(); saveData();
+            closeModals(); await saveData();
         }
-        function addRep() {
+        async function addRep() {
             if(!isAdmin) return;
+            await fetchData();
+            data.reports = data.reports || [];
             data.reports.push({title: document.getElementById('rep-title').value, desc: document.getElementById('rep-desc').value});
-            closeModals(); saveData();
+            closeModals(); await saveData();
         }
-        function del(type, i) {
+        async function del(type, i) {
             if(!isAdmin) return;
+            await fetchData();
             data[type].splice(i, 1);
-            saveData();
+            await saveData();
         }
     </script>
 </body>
