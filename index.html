@@ -18,7 +18,7 @@ body{background:var(--bg-dark);color:var(--text-main);min-height:100vh;padding:2
 .btn{background:linear-gradient(135deg,#00ff88,#00bfff);color:#05070a;border:none;padding:12px 25px;font-weight:700;border-radius:8px;cursor:pointer;width:100%;font-size:16px}
 .btn:hover{opacity:.9}
 .error-msg{color:var(--danger);margin-top:15px;font-size:14px;display:none}
-#main-app{display:none;max-width:1200px;margin:0 auto}
+#main-app{display:none;max-width:1400px;margin:0 auto}
 header{background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:15px}
 .logo-area h1{color:var(--primary-glow);font-size:22px}
 .logo-area span{color:var(--text-muted);font-size:12px}
@@ -31,7 +31,7 @@ header{background:var(--panel-bg);border:1px solid var(--border-color);border-ra
 .tab-btn.active{background:rgba(0,255,136,.1);color:var(--primary-glow);border-color:var(--primary-glow)}
 .content-section{display:none;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:25px}
 .content-section.active{display:block}
-.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
 .section-header h2{font-size:18px}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;text-align:right}
@@ -44,25 +44,38 @@ td{font-size:14px}
 .status-offline{background:rgba(139,148,158,.15);color:#8b949e}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border-color);background:transparent;color:#fff}
 .btn-danger{color:var(--danger);border-color:rgba(255,77,77,.3)}
+.btn-edit{color:var(--secondary-glow);border-color:rgba(0,191,255,.3)}
 .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
 .info-card{background:rgba(0,0,0,.3);border:1px solid var(--border-color);border-radius:8px;padding:15px}
 .info-card h3{color:var(--secondary-glow);margin-bottom:8px;font-size:15px}
 .info-card p{color:var(--text-muted);font-size:13px;line-height:1.5;margin-bottom:10px;white-space:pre-wrap}
 .empty{color:var(--text-muted);font-size:14px;padding:10px}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center;z-index:2000;padding:15px}
-.modal-content{background:#0d1117;border:1px solid var(--primary-glow);padding:25px;border-radius:12px;width:100%;max-width:400px}
+.modal-content{background:#0d1117;border:1px solid var(--primary-glow);padding:25px;border-radius:12px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
 .modal-content h3{margin-bottom:12px}
 .form-group{margin-bottom:12px}
 .form-group label{display:block;margin-bottom:5px;font-size:12px;color:var(--text-muted)}
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px;background:rgba(0,0,0,.5);border:1px solid var(--border-color);border-radius:6px;color:#fff;font-size:13px}
 .form-group textarea{height:80px}
-.admin-only{display:none}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .thumbs img{width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color);cursor:pointer}
 .form-group input[type=file]{padding:6px;font-size:12px}
-.hint{font-size:11px;color:var(--text-muted);margin-top:4px}
 #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:3000;justify-content:center;align-items:center;padding:15px;cursor:zoom-out}
 #lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+
+/* شبكة الجريمة التفاعلية */
+.network-container{position:relative;width:100%;height:650px;background:#05070a;border:1px solid var(--border-color);border-radius:8px;overflow:hidden;cursor:grab}
+.network-container:active{cursor:grabbing}
+.network-canvas-layer{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.network-inner{position:absolute;inset:0;transform-origin:0 0}
+.node-card{position:absolute;width:200px;background:rgba(13,17,23,0.95);border:2px solid var(--secondary-glow);border-radius:8px;padding:10px;box-shadow:0 4px 15px rgba(0,0,0,0.5);cursor:move;user-select:none;z-index:10}
+.node-card.selected{border-color:var(--primary-glow);box-shadow:0 0 15px rgba(0,255,136,0.4)}
+.node-card img{width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;background:#000}
+.node-card h4{font-size:14px;color:#fff;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-card p{font-size:11px;color:var(--text-muted);margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.node-actions{display:flex;gap:4px;justify-content:space-between}
+.network-toolbar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
+.networks-list{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
 </style>
 </head>
 <body>
@@ -81,7 +94,7 @@ td{font-size:14px}
   <header>
     <div class="logo-area">
       <h1>SID DIVISION</h1>
-      <span>النظام المركزي للاستخبارات</span>
+      <span>النظام المركزي للاستخبارات (صلاحية كاملة لجميع الأفراد)</span>
     </div>
     <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
       <span id="sync" class="sync">جاري الاتصال...</span>
@@ -94,108 +107,156 @@ td{font-size:14px}
     <button class="tab-btn" onclick="switchTab('safehouses', this)">أماكن الاجتماعات</button>
     <button class="tab-btn" onclick="switchTab('radios', this)">ترددات الراديو</button>
     <button class="tab-btn" onclick="switchTab('reports', this)">التقارير السرية</button>
+    <button class="tab-btn" onclick="switchTab('network', this)" style="border-color:var(--primary-glow);color:var(--primary-glow)">🕸️ الشبكات الإجرامية</button>
   </div>
 
+  <!-- جدول الأفراد -->
   <div id="roster-section" class="content-section active">
     <div class="section-header">
-      <h2>قائمة الأفراد</h2>
-      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('agent-modal')">إضافة عميل</button>
+      <h2>قائمة الأفراد والحالة</h2>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openAgentModal()">إضافة عميل</button>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>الشارة</th><th>الاسم</th><th>الرتبة</th><th>الحالة</th><th class="admin-only">إجراءات</th></tr></thead>
+      <thead><tr><th>الشارة</th><th>الاسم</th><th>الرتبة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
       <tbody id="agents-tbody"></tbody>
     </table></div>
   </div>
 
+  <!-- أماكن الاجتماعات -->
   <div id="safehouses-section" class="content-section">
     <div class="section-header">
       <h2>أماكن الاجتماعات والبيوت الآمنة</h2>
-      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('sh-modal')">إضافة موقع</button>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openSHModal()">إضافة موقع</button>
     </div>
     <div class="grid-cards" id="sh-grid"></div>
   </div>
 
+  <!-- ترددات الراديو -->
   <div id="radios-section" class="content-section">
     <div class="section-header">
       <h2>ترددات الراديو السرية</h2>
-      <button class="btn admin-only" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('rd-modal')">إضافة تردد</button>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openRDModal()">إضافة تردد</button>
     </div>
     <div class="grid-cards" id="rd-grid"></div>
   </div>
 
+  <!-- التقارير -->
   <div id="reports-section" class="content-section">
     <div class="section-header">
       <h2>التقارير الاستخباراتية</h2>
-      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openModal('rep-modal')">إضافة تقرير</button>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openRepModal()">إضافة تقرير</button>
     </div>
     <div class="grid-cards" id="rep-grid"></div>
+  </div>
+
+  <!-- الشبكات الإجرامية التفاعلية المتعددة -->
+  <div id="network-section" class="content-section">
+    <div class="section-header">
+      <h2>الشبكات الإجرامية والتحقيقات المرئية</h2>
+      <div style="display:flex;gap:10px">
+        <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openCreateNetModal()">+ إنشاء شبكة جديدة</button>
+        <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openNodeModal()">+ إضافة عنصر للشبكة</button>
+      </div>
+    </div>
+    
+    <!-- قائمة اختيار الشبكات -->
+    <div class="networks-list" id="networks-tabs-container"></div>
+
+    <div class="network-toolbar">
+      <span style="font-size:12px;color:var(--text-muted)">💡 إرشادات: اسحب أي عنصر لتغيير مكانه. اضغط على "ربط 🧶" في عنصر ثم اضغط على عنصر آخر لتوصيل حبل بينهما.</span>
+      <button class="btn-sm btn-edit" onclick="resetZoom()" style="margin-right:auto">إعادة ضبط العرض</button>
+    </div>
+    <div class="network-container" id="network-container">
+      <canvas class="network-canvas-layer" id="network-canvas-layer"></canvas>
+      <div class="network-inner" id="network-inner"></div>
+    </div>
   </div>
 </div>
 
 <div id="lightbox" onclick="this.style.display='none'"><img id="lightbox-img" alt=""></div>
 
+<!-- مودال العميل -->
 <div id="agent-modal" class="modal"><div class="modal-content">
-  <h3>إضافة عميل</h3>
+  <h3 id="ag-modal-title">إضافة عميل</h3>
+  <input type="hidden" id="ag-edit-id">
   <div class="form-group"><label>الاسم</label><input type="text" id="ag-name"></div>
   <div class="form-group"><label>الرتبة</label><input type="text" id="ag-rank"></div>
   <div class="form-group"><label>الشارة</label><input type="text" id="ag-badge"></div>
   <div class="form-group"><label>الحالة</label><select id="ag-status"><option value="online">متواجد</option><option value="mission">في مهمة</option><option value="offline">غير متواجد</option></select></div>
-  <button class="btn" onclick="addAgent()">حفظ</button>
+  <button class="btn" onclick="saveAgent()">حفظ</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
 </div></div>
 
+<!-- مودال الموقع -->
 <div id="sh-modal" class="modal"><div class="modal-content">
-  <h3>إضافة موقع</h3>
+  <h3 id="sh-modal-title">إضافة موقع</h3>
+  <input type="hidden" id="sh-edit-id">
   <div class="form-group"><label>اسم الموقع</label><input type="text" id="sh-title"></div>
   <div class="form-group"><label>الوصف</label><textarea id="sh-desc"></textarea></div>
   <div class="form-group"><label>صور (اختياري، حتى 4)</label><input type="file" id="sh-photos" accept="image/*" multiple></div>
-  <button class="btn" onclick="addSH()">حفظ</button>
+  <button class="btn" onclick="saveSH()">حفظ</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
 </div></div>
 
+<!-- مودال التردد -->
 <div id="rd-modal" class="modal"><div class="modal-content">
-  <h3>إضافة تردد</h3>
+  <h3 id="rd-modal-title">إضافة تردد</h3>
+  <input type="hidden" id="rd-edit-id">
   <div class="form-group"><label>اسم القناة</label><input type="text" id="rd-name"></div>
   <div class="form-group"><label>التردد</label><input type="text" id="rd-freq"></div>
-  <button class="btn" onclick="addRD()">حفظ</button>
+  <button class="btn" onclick="saveRD()">حفظ</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
 </div></div>
 
+<!-- مودال التقرير -->
 <div id="rep-modal" class="modal"><div class="modal-content">
-  <h3>إضافة تقرير</h3>
+  <h3 id="rep-modal-title">إضافة تقرير</h3>
+  <input type="hidden" id="rep-edit-id">
   <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
   <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
   <div class="form-group"><label>صور (اختياري، حتى 4)</label><input type="file" id="rep-photos" accept="image/*" multiple></div>
-  <button class="btn" onclick="addRep()">حفظ</button>
+  <button class="btn" onclick="saveRep()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال إنشاء شبكة جديدة -->
+<div id="net-modal" class="modal"><div class="modal-content">
+  <h3>إنشاء شبكة إجرامية جديدة</h3>
+  <div class="form-group"><label>اسم الشبكة / القضية</label><input type="text" id="net-title-input"></div>
+  <button class="btn" onclick="createNewNetwork()">إنشاء</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال عنصر الشبكة الإجرامية -->
+<div id="node-modal" class="modal"><div class="modal-content">
+  <h3>إضافة عنصر للشبكة الحالية</h3>
+  <div class="form-group"><label>الاسم / العنوان</label><input type="text" id="node-name"></div>
+  <div class="form-group"><label>ملاحظات / وصف مختصر</label><textarea id="node-desc"></textarea></div>
+  <div class="form-group"><label>صورة (اختياري)</label><input type="file" id="node-photo" accept="image/*"></div>
+  <button class="btn" onclick="saveNode()">إضافة للشبكة</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
 </div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// ===== ضع رابط قاعدة البيانات هنا (من Firebase Realtime Database) =====
+// ===== رابط قاعدة البيانات =====
 const DATABASE_URL = "https://sid-outlaw-default-rtdb.firebaseio.com";
-// مثال: "https://sid-outlaw-default-rtdb.firebaseio.com"
-// ======================================================================
+// =============================
 
-let isAdmin = false;
 let db = null;
-const store = { agents: [], safehouses: [], radios: [], reports: [] };
+const store = { agents: [], safehouses: [], radios: [], reports: [], networks: {}, nodes: {}, links: {} };
+let currentNetworkId = null;
+
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function setSync(text, cls) { const el = $('sync'); el.textContent = text; el.className = 'sync ' + (cls || ''); }
 
 window.checkPin = function () {
   const pin = $('pin-input').value;
-  if (pin === '12459') {
-    isAdmin = true;
-    $('role-display').innerText = '🔓 قائد الفرقة (صلاحية كاملة)';
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
-    startApp();
-  } else if (pin === '7365') {
-    isAdmin = false;
-    $('role-display').innerText = '👁️ عضو (مشاهدة فقط)';
+  if (pin === '12459' || pin === '7365') {
+    $('role-display').innerText = pin === '12459' ? '🔓 قائد الفرقة (صلاحية كاملة)' : '🟢 عضو استخبارات (صلاحية كاملة)';
     startApp();
   } else {
     $('error-msg').style.display = 'block';
@@ -205,8 +266,8 @@ window.checkPin = function () {
 function startApp() {
   $('login-screen').style.display = 'none';
   $('main-app').style.display = 'block';
-  render();
   connect();
+  initNetworkInteraction();
 }
 
 function connect() {
@@ -215,27 +276,47 @@ function connect() {
     db = getDatabase(initializeApp({ databaseURL: DATABASE_URL }));
   } catch (e) { setSync('خطأ في إعداد قاعدة البيانات', 'bad'); return; }
   const timer = setTimeout(() => setSync('تعذر الوصول للبيانات حالياً', 'bad'), 10000);
-  Object.keys(store).forEach(name => {
+  
+  const keys = ['agents', 'safehouses', 'radios', 'reports', 'networks', 'nodes', 'links'];
+  keys.forEach(name => {
     onValue(ref(db, name), snap => {
       clearTimeout(timer);
       const v = snap.val() || {};
-      store[name] = Object.entries(v).map(([id, o]) => ({ id, ...o })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      store[name] = v;
+      if(name !== 'networks' && name !== 'nodes' && name !== 'links') {
+        store[name] = Object.entries(v).map(([id, o]) => ({ id, ...o })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      } else if(name === 'networks') {
+        const netKeys = Object.keys(v);
+        if(netKeys.length > 0 && !currentNetworkId) {
+          currentNetworkId = netKeys[0];
+        }
+      }
       setSync('متصل ومتزامن ✓', 'ok');
       render();
     }, () => { clearTimeout(timer); setSync('خطأ في الاتصال أو الصلاحيات', 'bad'); });
   });
 }
 
-const MEMBER_CAN_ADD = ['safehouses', 'reports'];
-async function add(name, obj) {
-  if (!db || !(isAdmin || MEMBER_CAN_ADD.includes(name))) return false;
-  try { await push(ref(db, name), { ...obj, createdAt: Date.now() }); return true; }
-  catch (e) { alert('تعذر الحفظ. تأكد من قواعد قاعدة البيانات.'); return false; }
+async function saveData(path, id, obj) {
+  if (!db) return false;
+  try {
+    if (id) {
+      await set(ref(db, `${path}/${id}`), obj);
+    } else {
+      const newRef = push(ref(db, path));
+      await set(newRef, { ...obj, createdAt: Date.now() });
+      return newRef.key;
+    }
+    return id;
+  } catch (e) { alert('تعذر الحفظ في القاعدة.'); return false; }
 }
+
 window.del = async function (name, id) {
-  if (!isAdmin || !db) return;
-  try { await remove(ref(db, name + '/' + id)); }
-  catch (e) { alert('تعذر الحذف.'); }
+  if (!db) return;
+  if (confirm('هل أنت متأكد من الحذف؟')) {
+    try { await remove(ref(db, name + '/' + id)); }
+    catch (e) { alert('تعذر الحذف.'); }
+  }
 };
 
 window.switchTab = function (tab, btn) {
@@ -243,6 +324,7 @@ window.switchTab = function (tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   $(tab + '-section').classList.add('active');
   btn.classList.add('active');
+  if(tab === 'network') { resizeCanvas(); drawNetwork(); }
 };
 
 function compressImage(file) {
@@ -253,7 +335,7 @@ function compressImage(file) {
       const img = new Image();
       img.onerror = reject;
       img.onload = () => {
-        const max = 900, ratio = Math.min(1, max / Math.max(img.width, img.height));
+        const max = 800, ratio = Math.min(1, max / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
         c.width = Math.round(img.width * ratio); c.height = Math.round(img.height * ratio);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
@@ -264,65 +346,434 @@ function compressImage(file) {
     reader.readAsDataURL(file);
   });
 }
+
 async function readPhotos(inputId) {
   const files = Array.from($(inputId).files || []).slice(0, 4);
   const out = [];
   for (const f of files) { try { out.push(await compressImage(f)); } catch (e) {} }
   return out;
 }
+
 window.showImg = function (el) { $('lightbox-img').src = el.src; $('lightbox').style.display = 'flex'; };
 function thumbs(list) {
   if (!Array.isArray(list) || !list.length) return '';
   return '<div class="thumbs">' + list.filter(p => typeof p === 'string' && p.startsWith('data:image/')).map(p => `<img src="${p}" alt="" onclick="showImg(this)">`).join('') + '</div>';
 }
 
-function delBtn(name, id) { return isAdmin ? `<button class="btn-sm btn-danger" onclick="del('${name}','${esc(id)}')">حذف</button>` : ''; }
-
 function render() {
+  // الأفراد
   $('agents-tbody').innerHTML = store.agents.map(ag => {
     const cls = ag.status === 'online' ? 'status-online' : ag.status === 'mission' ? 'status-mission' : 'status-offline';
     const txt = ag.status === 'online' ? 'متواجد' : ag.status === 'mission' ? 'في مهمة' : 'غير متواجد';
-    const act = isAdmin ? `<td>${delBtn('agents', ag.id)}</td>` : '';
-    return `<tr><td><code>${esc(ag.badge)}</code></td><td><strong>${esc(ag.name)}</strong></td><td>${esc(ag.rank)}</td><td><span class="badge-status ${cls}">${txt}</span></td>${act}</tr>`;
+    return `<tr><td><code>${esc(ag.badge)}</code></td><td><strong>${esc(ag.name)}</strong></td><td>${esc(ag.rank)}</td><td><span class="badge-status ${cls}">${txt}</span></td><td><button class="btn-sm btn-edit" onclick="editAgent('${ag.id}')">تعديل</button> <button class="btn-sm btn-danger" onclick="del('agents','${ag.id}')">حذف</button></td></tr>`;
   }).join('') || '<tr><td colspan="5" class="empty">لا يوجد أفراد بعد</td></tr>';
 
+  // المواقع
   $('sh-grid').innerHTML = store.safehouses.map(sh =>
-    `<div class="info-card"><h3>${esc(sh.title)}</h3>${thumbs(sh.photos)}<p>${esc(sh.desc)}</p>${delBtn('safehouses', sh.id)}</div>`
+    `<div class="info-card"><h3>${esc(sh.title)}</h3>${thumbs(sh.photos)}<p>${esc(sh.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editSH('${sh.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('safehouses','${sh.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد مواقع بعد</div>';
 
+  // الترددات
   $('rd-grid').innerHTML = store.radios.map(rd =>
-    `<div class="info-card"><h3>${esc(rd.name)}</h3><p>التردد: <code style="color:var(--primary-glow)">${esc(rd.freq)}</code></p>${delBtn('radios', rd.id)}</div>`
+    `<div class="info-card"><h3>${esc(rd.name)}</h3><p>التردد: <code style="color:var(--primary-glow)">${esc(rd.freq)}</code></p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRD('${rd.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('radios','${rd.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد ترددات بعد</div>';
 
+  // التقارير
   $('rep-grid').innerHTML = store.reports.map(rep =>
-    `<div class="info-card"><h3>${esc(rep.title)}</h3>${thumbs(rep.photos)}<p>${esc(rep.desc)}</p>${delBtn('reports', rep.id)}</div>`
+    `<div class="info-card"><h3>${esc(rep.title)}</h3>${thumbs(rep.photos)}<p>${esc(rep.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRep('${rep.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('reports','${rep.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد تقارير بعد</div>';
+
+  renderNetworksList();
+  drawNetwork();
 }
 
-window.openModal = function (id) { if (isAdmin || id === 'sh-modal' || id === 'rep-modal') $(id).style.display = 'flex'; };
 window.closeModals = function () { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
-function clearFields(...ids) { ids.forEach(i => { $(i).value = ''; }); }
 
-window.addAgent = function () {
-  add('agents', { name: $('ag-name').value, rank: $('ag-rank').value, badge: $('ag-badge').value, status: $('ag-status').value });
-  clearFields('ag-name', 'ag-rank', 'ag-badge'); closeModals();
+// دوال الأفراد والمواقع والتقارير
+window.openAgentModal = function() {
+  $('ag-edit-id').value = '';
+  $('ag-name').value = ''; $('ag-rank').value = ''; $('ag-badge').value = ''; $('ag-status').value = 'online';
+  $('ag-modal-title').innerText = 'إضافة عميل';
+  $('agent-modal').style.display = 'flex';
 };
-window.addSH = async function () {
+window.editAgent = function(id) {
+  const ag = store.agents.find(x => x.id === id);
+  if(!ag) return;
+  $('ag-edit-id').value = ag.id;
+  $('ag-name').value = ag.name || '';
+  $('ag-rank').value = ag.rank || '';
+  $('ag-badge').value = ag.badge || '';
+  $('ag-status').value = ag.status || 'online';
+  $('ag-modal-title').innerText = 'تعديل بيانات العميل';
+  $('agent-modal').style.display = 'flex';
+};
+window.saveAgent = async function() {
+  const id = $('ag-edit-id').value;
+  const data = { name: $('ag-name').value, rank: $('ag-rank').value, badge: $('ag-badge').value, status: $('ag-status').value };
+  if(id) data.createdAt = store.agents.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('agents', id || null, data);
+  if(ok) closeModals();
+};
+
+window.openSHModal = function() {
+  $('sh-edit-id').value = '';
+  $('sh-title').value = ''; $('sh-desc').value = ''; $('sh-photos').value = '';
+  $('sh-modal-title').innerText = 'إضافة موقع';
+  $('sh-modal').style.display = 'flex';
+};
+window.editSH = function(id) {
+  const sh = store.safehouses.find(x => x.id === id);
+  if(!sh) return;
+  $('sh-edit-id').value = sh.id;
+  $('sh-title').value = sh.title || '';
+  $('sh-desc').value = sh.desc || '';
+  $('sh-modal-title').innerText = 'تعديل الموقع';
+  $('sh-modal').style.display = 'flex';
+};
+window.saveSH = async function() {
+  const id = $('sh-edit-id').value;
   const photos = await readPhotos('sh-photos');
-  const ok = await add('safehouses', { title: $('sh-title').value, desc: $('sh-desc').value, photos });
-  if (ok) { clearFields('sh-title', 'sh-desc', 'sh-photos'); closeModals(); }
+  const oldPhotos = store.safehouses.find(x => x.id === id)?.photos || [];
+  const data = { title: $('sh-title').value, desc: $('sh-desc').value, photos: photos.length ? photos : oldPhotos };
+  if(id) data.createdAt = store.safehouses.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('safehouses', id || null, data);
+  if(ok) closeModals();
 };
-window.addRD = function () {
-  add('radios', { name: $('rd-name').value, freq: $('rd-freq').value });
-  clearFields('rd-name', 'rd-freq'); closeModals();
+
+window.openRDModal = function() {
+  $('rd-edit-id').value = '';
+  $('rd-name').value = ''; $('rd-freq').value = '';
+  $('rd-modal-title').innerText = 'إضافة تردد';
+  $('rd-modal').style.display = 'flex';
 };
-window.addRep = async function () {
+window.editRD = function(id) {
+  const rd = store.radios.find(x => x.id === id);
+  if(!rd) return;
+  $('rd-edit-id').value = rd.id;
+  $('rd-name').value = rd.name || '';
+  $('rd-freq').value = rd.freq || '';
+  $('rd-modal-title').innerText = 'تعديل التردد';
+  $('rd-modal').style.display = 'flex';
+};
+window.saveRD = async function() {
+  const id = $('rd-edit-id').value;
+  const data = { name: $('rd-name').value, freq: $('rd-freq').value };
+  if(id) data.createdAt = store.radios.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('radios', id || null, data);
+  if(ok) closeModals();
+};
+
+window.openRepModal = function() {
+  $('rep-edit-id').value = '';
+  $('rep-title').value = ''; $('rep-desc').value = ''; $('rep-photos').value = '';
+  $('rep-modal-title').innerText = 'إضافة تقرير';
+  $('rep-modal').style.display = 'flex';
+};
+window.editRep = function(id) {
+  const rep = store.reports.find(x => x.id === id);
+  if(!rep) return;
+  $('rep-edit-id').value = rep.id;
+  $('rep-title').value = rep.title || '';
+  $('rep-desc').value = rep.desc || '';
+  $('rep-modal-title').innerText = 'تعديل التقرير';
+  $('rep-modal').style.display = 'flex';
+};
+window.saveRep = async function() {
+  const id = $('rep-edit-id').value;
   const photos = await readPhotos('rep-photos');
-  const ok = await add('reports', { title: $('rep-title').value, desc: $('rep-desc').value, photos });
-  if (ok) { clearFields('rep-title', 'rep-desc', 'rep-photos'); closeModals(); }
+  const oldPhotos = store.reports.find(x => x.id === id)?.photos || [];
+  const data = { title: $('rep-title').value, desc: $('rep-desc').value, photos: photos.length ? photos : oldPhotos };
+  if(id) data.createdAt = store.reports.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('reports', id || null, data);
+  if(ok) closeModals();
 };
+
+// ===== الشبكات الإجرامية المتعددة =====
+window.openCreateNetModal = function() {
+  $('net-title-input').value = '';
+  $('net-modal').style.display = 'flex';
+};
+
+window.createNewNetwork = async function() {
+  const title = $('net-title-input').value.trim();
+  if(!title) return alert('أدخل اسم الشبكة');
+  const newId = 'net_' + Date.now();
+  await saveData('networks', newId, { id: newId, title });
+  currentNetworkId = newId;
+  closeModals();
+  renderNetworksList();
+  drawNetwork();
+};
+
+window.switchNetwork = function(netId) {
+  currentNetworkId = netId;
+  connectingNodeId = null;
+  renderNetworksList();
+  drawNetwork();
+};
+
+window.deleteCurrentNetwork = async function() {
+  if(!currentNetworkId) return;
+  if(!confirm('حذف هذه الشبكة بكل عناصرها وخيوطها؟')) return;
+  const netId = currentNetworkId;
+  
+  // حذف العناصر والروابط التابعة لهذه الشبكة
+  const nodes = store.nodes || {};
+  for(const [nid, node] of Object.entries(nodes)) {
+    if(node.networkId === netId) await remove(ref(db, `nodes/${nid}`));
+  }
+  const links = store.links || {};
+  for(const [lid, link] of Object.entries(links)) {
+    if(link.networkId === netId) await remove(ref(db, `links/${lid}`));
+  }
+  await remove(ref(db, `networks/${netId}`));
+  
+  const remainingNets = Object.keys(store.networks || {}).filter(id => id !== netId);
+  currentNetworkId = remainingNets.length > 0 ? remainingNets[0] : null;
+  renderNetworksList();
+  drawNetwork();
+};
+
+function renderNetworksList() {
+  const nets = store.networks || {};
+  const container = $('networks-tabs-container');
+  const netKeys = Object.keys(nets);
+  
+  if(netKeys.length === 0) {
+    container.innerHTML = '<span style="color:var(--text-muted);font-size:13px">لا توجد شبكات حالياً. انشئ شبكة جديدة للبدء.</span>';
+    return;
+  }
+  
+  if(!currentNetworkId || !nets[currentNetworkId]) {
+    currentNetworkId = netKeys[0];
+  }
+
+  container.innerHTML = netKeys.map(id => {
+    const net = nets[id];
+    const isActive = id === currentNetworkId;
+    return `<button class="tab-btn ${isActive ? 'active' : ''}" onclick="switchNetwork('${id}')" style="padding:6px 14px;font-size:13px">${esc(net.title)}</button>`;
+  }).join('') + `<button class="btn-sm btn-danger" onclick="deleteCurrentNetwork()" style="margin-right:auto">حذف الشبكة الحالية</button>`;
+}
+
+// ===== إدارة العناصر والخيوط =====
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, startX = 0, startY = 0;
+let connectingNodeId = null;
+let draggingNodeId = null;
+
+window.openNodeModal = function() {
+  if(!currentNetworkId) {
+    alert('الرجاء إنشاء شبكة أولاً قبل إضافة العناصر.');
+    return;
+  }
+  $('node-name').value = ''; $('node-desc').value = ''; $('node-photo').value = '';
+  $('node-modal').style.display = 'flex';
+};
+
+window.saveNode = async function() {
+  const name = $('node-name').value;
+  const desc = $('node-desc').value;
+  let photo = '';
+  const photoInput = $('node-photo');
+  if(photoInput.files && photoInput.files[0]) {
+    try { photo = await compressImage(photoInput.files[0]); } catch(e){}
+  }
+  const id = 'node_' + Date.now();
+  const newNode = { id, networkId: currentNetworkId, name, desc, photo, x: 100 - panX, y: 100 - panY };
+  await saveData('nodes', id, newNode);
+  closeModals();
+};
+
+window.deleteNode = async function(id, event) {
+  event.stopPropagation();
+  if(!confirm('حذف هذا العنصر وكل الخيوط المرتبطة به؟')) return;
+  if(db) {
+    await remove(ref(db, `nodes/${id}`));
+    const links = store.links || {};
+    for(const [lid, link] of Object.entries(links)) {
+      if(link.from === id || link.to === id) {
+        await remove(ref(db, `links/${lid}`));
+      }
+    }
+  }
+  drawNetwork();
+};
+
+window.startConnecting = function(id, event) {
+  event.stopPropagation();
+  if(!connectingNodeId) {
+    connectingNodeId = id;
+    drawNetwork();
+  } else {
+    if(connectingNodeId === id) {
+      connectingNodeId = null;
+      drawNetwork();
+      return;
+    }
+    // إنشاء الرابط بحبل مرئي
+    const linkId = 'link_' + Date.now();
+    const newLink = { id: linkId, networkId: currentNetworkId, from: connectingNodeId, to: id };
+    saveData('links', linkId, newLink);
+    connectingNodeId = null;
+    drawNetwork();
+  }
+};
+
+function initNetworkInteraction() {
+  const container = $('network-container');
+
+  container.addEventListener('mousedown', e => {
+    if(e.target === container || e.target === $('network-canvas-layer')) {
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if(isPanning) {
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    } else if(draggingNodeId) {
+      const nodes = store.nodes || {};
+      const node = nodes[draggingNodeId];
+      if(node) {
+        node.x = (e.clientX - startX - panX) / zoom;
+        node.y = (e.clientY - startY - panY) / zoom;
+        drawNetworkNodesPositions();
+        drawNetworkLines();
+      }
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    isPanning = false;
+    if(draggingNodeId) {
+      const nodes = store.nodes || {};
+      const node = nodes[draggingNodeId];
+      if(node && db) {
+        set(ref(db, `nodes/${draggingNodeId}`), node);
+      }
+      draggingNodeId = null;
+    }
+  });
+
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    if(e.deltaY < 0) {
+      zoom = Math.min(zoom * zoomFactor, 3);
+    } else {
+      zoom = Math.max(zoom / zoomFactor, 0.3);
+    }
+    updateTransform();
+  }, { passive: false });
+}
+
+function updateTransform() {
+  $('network-inner').style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  drawNetworkLines();
+}
+
+window.resetZoom = function() {
+  panX = 0; panY = 0; zoom = 1;
+  updateTransform();
+};
+
+function resizeCanvas() {
+  const canvas = $('network-canvas-layer');
+  const container = $('network-container');
+  if(!canvas || !container) return;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  drawNetworkLines();
+}
+
+function drawNetwork() {
+  drawNetworkNodes();
+  resizeCanvas();
+}
+
+function drawNetworkNodes() {
+  const inner = $('network-inner');
+  if(!inner) return;
+  const nodes = store.nodes || {};
+  
+  const currentNodes = Object.values(nodes).filter(n => n.networkId === currentNetworkId);
+
+  inner.innerHTML = currentNodes.map(node => {
+    const isConn = connectingNodeId === node.id;
+    const imgTag = node.photo ? `<img src="${node.photo}" alt="">` : '';
+    return `
+      <div class="node-card ${isConn ? 'selected' : ''}" id="${node.id}" style="left:${node.x || 50}px; top:${node.y || 50}px" onmousedown="startDragNode('${node.id}', event)">
+        ${imgTag}
+        <h4>${esc(node.name)}</h4>
+        <p>${esc(node.desc)}</p>
+        <div class="node-actions">
+          <button class="btn-sm btn-edit" onclick="startConnecting('${node.id}', event)">${isConn ? 'إلغاء' : 'ربط 🧶'}</button>
+          <button class="btn-sm btn-danger" onclick="deleteNode('${node.id}', event)">حذف</button>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div class="empty" style="padding:40px;text-align:center">لا توجد عناصر في هذه الشبكة بعد. اضغط على "+ إضافة عنصر للشبكة"</div>';
+}
+
+function drawNetworkNodesPositions() {
+  const nodes = store.nodes || {};
+  Object.values(nodes).filter(n => n.networkId === currentNetworkId).forEach(node => {
+    const el = $(node.id);
+    if(el) {
+      el.style.left = node.x + 'px';
+      el.style.top = node.y + 'px';
+    }
+  });
+}
+
+window.startDragNode = function(id, e) {
+  if(e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG') return;
+  draggingNodeId = id;
+  const nodes = store.nodes || {};
+  const node = nodes[id];
+  if(node) {
+    startX = e.clientX - (node.x || 0) * zoom - panX;
+    startY = e.clientY - (node.y || 0) * zoom - panY;
+  }
+  e.stopPropagation();
+};
+
+function drawNetworkLines() {
+  const canvas = $('network-canvas-layer');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2 * zoom;
+  ctx.setLineDash([5, 5]);
+
+  const links = store.links || {};
+  const nodes = store.nodes || {};
+
+  Object.values(links).filter(l => l.networkId === currentNetworkId).forEach(link => {
+    const fromNode = nodes[link.from];
+    const toNode = nodes[link.to];
+    if(fromNode && toNode) {
+      const x1 = ((fromNode.x || 0) + 100) * zoom + panX;
+      const y1 = ((fromNode.y || 0) + 75) * zoom + panY;
+      const x2 = ((toNode.x || 0) + 100) * zoom + panX;
+      const y2 = ((toNode.y || 0) + 75) * zoom + panY;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  });
+}
 
 $('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+window.addEventListener('resize', resizeCanvas);
 </script>
 </body>
 </html>
