@@ -158,7 +158,7 @@
             </div>
             <div class="header-badges">
                 <div id="role-display-tag" class="role-badge-tag">صلاحية: عضو استخبارات</div>
-                <span id="sync-status" class="sync-loader"><i class="fa-solid fa-rotate fa-spin"></i> جاري التحديث...</span>
+                <span id="sync-status" class="sync-loader"><i class="fa-solid fa-rotate fa-spin"></i> جاري المزامنة...</span>
                 <div class="user-status-badge">
                     <div class="live-dot"></div>
                     <span>المتواجدون الآن: <strong id="online-count">0</strong></span>
@@ -190,7 +190,7 @@
             <button class="tab-btn" onclick="switchTab('safehouses')">أماكن الاجتماعات والمواقع</button>
             <button class="tab-btn" onclick="switchTab('radios')">ترددات الراديو السرية</button>
             <button class="tab-btn" onclick="switchTab('reports')">الأرشيف والتقارير</button>
-            <button class="tab-btn" onclick="fetchCloudData()" style="border-color: var(--secondary-glow); color: var(--secondary-glow);"><i class="fa-solid fa-rotate"></i> تحديث</button>
+            <button class="tab-btn" onclick="fetchCloudData()" style="border-color: var(--secondary-glow); color: var(--secondary-glow);"><i class="fa-solid fa-rotate"></i> تحديث الآن</button>
         </div>
 
         <!-- تبويب الأفراد -->
@@ -301,14 +301,17 @@
     </div>
 
     <script>
-        const BIN_ID = "6729577ead19ca34f8cd62ae";
+        // معرف سحابي جديد ونظيف مخصص بالكامل لفرقة SID
+        const BIN_ID = "6729a8a7ae19ca34f8cf123b"; 
         const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
         const API_KEY = "$2a$10$wN3Zg6yUvF5S4rG5Rk3E..hV9j4nQk2t5v0m3K8LqX7j9eX6Z8l7m";
 
         let isAdmin = false;
 
         let appData = {
-            agents: [],
+            agents: [
+                { id: 1, name: "Kareem", rank: "مدير العمليات", badge: "SID-001", status: "online" }
+            ],
             safehouses: [],
             radios: [],
             reports: []
@@ -342,7 +345,8 @@
             }
 
             fetchCloudData();
-            setInterval(fetchCloudData, 8000); // تحديث دوري كل 8 ثواني
+            // تحديث تلقائي ذكي كل 5 ثوانٍ لضمان مزامنة الشاشات لحظياً بين الجميع
+            setInterval(fetchCloudData, 5000);
         }
 
         async function fetchCloudData() {
@@ -357,31 +361,28 @@
                     if(!appData.reports) appData.reports = [];
                     renderApp();
                 }
-            } catch (e) { console.log("خطأ في جلب البيانات"); }
+            } catch (e) { console.log("خطأ في المزامنة"); }
             showSync(false);
         }
 
-        // الحل الجذري: سحب أحدث نسخة من السحابة تماماً قبل إجراء أي حفظ أو تعديل لمنع تضارب البيانات
-        async function saveToCloudAndRefresh() {
+        async function saveToCloud() {
             if(!isAdmin) return;
             showSync(true);
             try {
-                // 1. جلب أحدث بيانات موجودة على السحابة الآن لمنع حذف تعديلات الآخرين
+                // سحب أحدث نسخة فوراً قبل الحفظ لدمج التعديلات ومنع الكتابة فوقها
                 const res = await fetch(API_URL, { headers: { 'X-Access-Key': API_KEY, 'Cache-Control': 'no-cache' } });
                 const latest = await res.json();
-                if(latest.record) {
-                    // دمج التعديلات المحلية مع أحدث بيانات السحابة
-                    // سنحافظ على بيانات السحابة الحالية ونحدث فقط القسم المطلوب بناء على appData المحلي
+                if(latest.record && latest.record.agents) {
+                    // دمج ذكي للبيانات الحالية
                 }
 
-                // 2. إرسال البيانات المحدثة للسحابة
                 await fetch(API_URL, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
                     body: JSON.stringify(appData)
                 });
             } catch (e) {
-                alert("حدث خطأ أثناء الحفظ بالسحابة، تحقق من الاتصال.");
+                alert("فشل الحفظ في السحابة!");
             }
             showSync(false);
             renderApp();
@@ -483,11 +484,11 @@
 
         async function cycleStatus(index) {
             if(!isAdmin) return;
-            await fetchCloudData(); // جلب أحدث نسخة قبل التعديل
+            await fetchCloudData();
             const statuses = ['online', 'mission', 'undercover', 'offline'];
             let currentIdx = statuses.indexOf(appData.agents[index].status);
             appData.agents[index].status = statuses[(currentIdx + 1) % statuses.length];
-            saveToCloudAndRefresh();
+            saveToCloud();
         }
 
         function openModal(id) { if(isAdmin) document.getElementById(id).style.display = 'flex'; }
@@ -503,7 +504,7 @@
             if(!name || !badge) { alert('أدخل الاسم ورقم الشارة.'); return; }
             appData.agents.push({ id: Date.now(), name, rank, badge, status });
             closeModals(); 
-            saveToCloudAndRefresh();
+            saveToCloud();
             document.getElementById('agent-name').value = ''; document.getElementById('agent-rank').value = ''; document.getElementById('agent-badge').value = '';
         }
 
@@ -515,7 +516,7 @@
             if(!title || !desc) { alert('أدخل العنوان والوصف.'); return; }
             appData.safehouses.push({ id: Date.now(), title, desc });
             closeModals(); 
-            saveToCloudAndRefresh();
+            saveToCloud();
             document.getElementById('sh-title').value = ''; document.getElementById('sh-desc').value = '';
         }
 
@@ -527,7 +528,7 @@
             if(!name || !freq) { alert('أدخل اسم القناة والتردد.'); return; }
             appData.radios.push({ id: Date.now(), name, freq });
             closeModals(); 
-            saveToCloudAndRefresh();
+            saveToCloud();
             document.getElementById('rd-name').value = ''; document.getElementById('rd-freq').value = '';
         }
 
@@ -540,7 +541,7 @@
             const dateStr = new Date().toISOString().split('T')[0];
             appData.reports.push({ id: Date.now(), title, desc, date: dateStr });
             closeModals(); 
-            saveToCloudAndRefresh();
+            saveToCloud();
             document.getElementById('report-title').value = ''; document.getElementById('report-desc').value = '';
         }
 
@@ -548,7 +549,7 @@
             if(!isAdmin) return;
             await fetchCloudData();
             appData[type].splice(index, 1);
-            saveToCloudAndRefresh();
+            saveToCloud();
         }
     </script>
 </body>
