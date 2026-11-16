@@ -225,7 +225,8 @@ td{font-size:14px}
   <input type="hidden" id="rep-edit-id">
   <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
   <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
-  <div class="form-group"><label>صور أو فيديوهات (بدون حد أقصى للحجم)</label><input type="file" id="rep-photos" accept="image/*,video/*" multiple></div>
+  <div class="form-group"><label>رفع صور أو فيديوهات من جهازك (تُرفع سحابياً للجميع)</label><input type="file" id="rep-photos" accept="image/*,video/*" multiple></div>
+  <div class="form-group"><label>أو رابط فيديو خارجي (YouTube / Streamable / رابط مباشر - اختياري)</label><input type="url" id="rep-video-url" placeholder="https://..."></div>
   <button class="btn" id="rep-save-btn" onclick="saveRep()">حفظ</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
 </div></div>
@@ -392,78 +393,49 @@ async function saveData(path, id, obj) {
   if (!db) { showToast('قاعدة البيانات غير متصلة.', true); return false; }
   try {
     if (id) {
-      await set(ref(db, `${path}/${id}`), obj);
-      return id;
-    } else {
-      const newRef = push(ref(db, path));
-      await set(newRef, { ...obj, createdAt: Date.now() });
-      return newRef.key;
+function extractEmbedUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+  const stMatch = url.match(/streamable\.com\/(?:e\/)?([a-zA-Z0-9]+)/);
+  if (stMatch) return `https://streamable.com/e/${stMatch[1]}`;
+  return '';
+}
+
+async function uploadVideoToCloud(file) {
+  // المحاولة الأولى: الرفع السحابي على Catbox (روابط دائمة تعمل على جميع الأجهزة)
+  try {
+    const fd1 = new FormData();
+    fd1.append('reqtype', 'fileupload');
+    fd1.append('fileToUpload', file);
+    const res1 = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: fd1 });
+    if (res1.ok) {
+      const link = (await res1.text()).trim();
+      if (link.startsWith('http')) return link;
     }
-  } catch (e) { showToast('تعذر الحفظ في قاعدة البيانات.', true); return false; }
-}
+  } catch (e) {}
 
-window.del = async function (name, id) {
-  if (!db) return;
-  if (await askConfirm('هل أنت متأكد من الحذف؟')) {
-    try { await remove(ref(db, name + '/' + id)); showToast('تم الحذف ✓'); }
-    catch (e) { showToast('تعذر الحذف.', true); }
-  }
-};
-
-window.switchTab = function (tab, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  $(tab + '-section').classList.add('active');
-  btn.classList.add('active');
-  if (tab === 'network') { resizeCanvas(); drawNetwork(); }
-};
-
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        const max = 800, ratio = Math.min(1, max / Math.max(img.width, img.height));
-        const c = document.createElement('canvas');
-        c.width = Math.round(img.width * ratio); c.height = Math.round(img.height * ratio);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL('image/jpeg', 0.7));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function readPhotos(inputId) {
-  const files = Array.from($(inputId).files || []).slice(0, 4);
-  const out = [];
-  for (const f of files) { try { out.push(await compressImage(f)); } catch (e) {} }
-  return out;
-}
-
-async function readReportMedia(inputId) {
-  const files = Array.from($(inputId).files || []);
-  const out = [];
-  for (const f of files) {
-    try {
-      if (f.type && f.type.startsWith('video/')) {
-        out.push({ type: 'video', file: f });
-      } else if (f.type && f.type.startsWith('image/')) {
-        const imgUrl = await compressImage(f);
-        out.push({ type: 'image', url: imgUrl });
+  // المحاولة الثانية الاحتياطية: tmpfiles.org
+  try {
+    const fd2 = new FormData();
+    fd2.append('file', file);
+    const res2 = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd2 });
+    if (res2.ok) {
+      const json = await res2.json();
+      if (json?.data?.url) {
+        return json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
       }
-    } catch (e) {}
-  }
-  return out;
+    }
+  } catch (e) {}
+
+  return null;
 }
 
 window.showImg = function (el) {
   const vid = $('lightbox-vid');
   const img = $('lightbox-img');
+  const oldFrame = $('lightbox-iframe');
+  if (oldFrame) oldFrame.remove();
   if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); vid.style.display = 'none'; }
   if (img) { img.src = el.src; img.style.display = 'block'; }
   $('lightbox').style.display = 'flex';
@@ -472,15 +444,33 @@ window.showImg = function (el) {
 window.showVid = async function (srcOrId) {
   const vid = $('lightbox-vid');
   const img = $('lightbox-img');
+  const oldFrame = $('lightbox-iframe');
+  if (oldFrame) oldFrame.remove();
   if (img) { img.src = ''; img.style.display = 'none'; }
+
   let finalSrc = srcOrId;
   if (typeof srcOrId === 'string' && srcOrId.startsWith('idb:')) {
     finalSrc = await localMediaDB.get(srcOrId.slice(4));
   }
   if (!finalSrc) {
-    showToast('تعذر العثور على ملف الفيديو في هذا الجهاز.', true);
+    showToast('تعذر تشغيل الفيديو.', true);
     return;
   }
+
+  const embedUrl = extractEmbedUrl(finalSrc);
+  if (embedUrl) {
+    if (vid) { vid.pause(); vid.style.display = 'none'; }
+    const iframe = document.createElement('iframe');
+    iframe.id = 'lightbox-iframe';
+    iframe.src = embedUrl;
+    iframe.style.cssText = 'width:90vw;max-width:900px;height:75vh;border:1px solid var(--primary-glow);border-radius:8px;background:#000';
+    iframe.allow = 'autoplay; fullscreen; encrypted-media';
+    iframe.allowFullscreen = true;
+    $('lightbox').insertBefore(iframe, $('lightbox').lastElementChild);
+    $('lightbox').style.display = 'flex';
+    return;
+  }
+
   if (vid) {
     vid.src = finalSrc;
     vid.style.display = 'block';
@@ -492,6 +482,8 @@ window.showVid = async function (srcOrId) {
 
 window.closeLightbox = function () {
   const vid = $('lightbox-vid');
+  const oldFrame = $('lightbox-iframe');
+  if (oldFrame) oldFrame.remove();
   if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); }
   $('lightbox').style.display = 'none';
 };
@@ -507,12 +499,21 @@ function renderReportMedia(rep) {
 
   const htmlItems = rawList.map((item, idx) => {
     const url = typeof item === 'string' ? item : (item && item.url ? item.url : '');
-    const isVideo = (item && item.type === 'video') || (typeof url === 'string' && (url.startsWith('data:video/') || url.startsWith('idb:')));
+    const isVideo = (item && item.type === 'video') || (typeof url === 'string' && (url.startsWith('data:video/') || url.startsWith('idb:') || /^https?:\/\//i.test(url)));
     const isImage = (item && item.type === 'image') || (typeof url === 'string' && url.startsWith('data:image/'));
 
     if (isVideo) {
       const vidDomId = `rep-vid-${esc(rep.id)}-${idx}`;
       const isIdb = typeof url === 'string' && url.startsWith('idb:');
+      const embedUrl = extractEmbedUrl(url);
+
+      if (embedUrl) {
+        return `<div class="video-wrap" style="display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="showVid('${esc(url)}')">
+          <button type="button" class="video-expand-btn">تشغيل ⛶</button>
+          <span style="color:var(--primary-glow);font-size:12px;font-weight:700">▶ فيديو خارجي</span>
+        </div>`;
+      }
+
       const safeSrc = isIdb ? '' : url;
       if (isIdb) {
         setTimeout(async () => {
@@ -525,7 +526,7 @@ function renderReportMedia(rep) {
       }
       return `<div class="video-wrap">
         <button type="button" class="video-expand-btn" onclick="showVid('${esc(url)}')">تكبير ⛶</button>
-        <video id="${vidDomId}" ${safeSrc ? `src="${safeSrc}"` : ''} controls playsinline preload="metadata"></video>
+        <video id="${vidDomId}" ${safeSrc ? `src="${esc(safeSrc)}"` : ''} controls playsinline preload="metadata"></video>
       </div>`;
     } else if (isImage) {
       return `<img src="${url}" alt="" onclick="showImg(this)">`;
@@ -646,6 +647,7 @@ window.saveRD = async function() {
 window.openRepModal = function() {
   $('rep-edit-id').value = '';
   $('rep-title').value = ''; $('rep-desc').value = ''; $('rep-photos').value = '';
+  if ($('rep-video-url')) $('rep-video-url').value = '';
   $('rep-modal-title').innerText = 'إضافة تقرير';
   $('rep-modal').style.display = 'flex';
 };
@@ -656,30 +658,42 @@ window.editRep = function(id) {
   $('rep-title').value = rep.title || '';
   $('rep-desc').value = rep.desc || '';
   $('rep-photos').value = '';
+  if ($('rep-video-url')) $('rep-video-url').value = '';
   $('rep-modal-title').innerText = 'تعديل التقرير';
   $('rep-modal').style.display = 'flex';
 };
 window.saveRep = async function() {
   const btn = $('rep-save-btn');
   btn.disabled = true;
-  btn.textContent = 'جاري المعالجة والحفظ...';
+  btn.textContent = 'جاري رفع الملفات وحفظ التقرير...';
   try {
     const id = $('rep-edit-id').value;
     const newMedia = await readReportMedia('rep-photos');
+    const videoLink = $('rep-video-url') ? $('rep-video-url').value.trim() : '';
     const existingRep = store.reports.find(x => x.id === id);
     const oldMedia = existingRep ? (existingRep.media || existingRep.photos || []) : [];
 
     let finalMedia = [];
-    if (newMedia.length) {
+    if (newMedia.length || videoLink) {
       for (let i = 0; i < newMedia.length; i++) {
         const item = newMedia[i];
         if (item.type === 'video' && item.file) {
-          const mediaKey = `vid_${Date.now()}_${i}`;
-          await localMediaDB.put(mediaKey, item.file);
-          finalMedia.push({ type: 'video', url: `idb:${mediaKey}` });
+          btn.textContent = `جاري رفع الفيديو للسحابة (${i + 1})...`;
+          const cloudUrl = await uploadVideoToCloud(item.file);
+          if (cloudUrl) {
+            finalMedia.push({ type: 'video', url: cloudUrl });
+          } else {
+            showToast('تعذر الرفع السحابي، تم الحفظ محلياً فقط.', true);
+            const mediaKey = `vid_${Date.now()}_${i}`;
+            await localMediaDB.put(mediaKey, item.file);
+            finalMedia.push({ type: 'video', url: `idb:${mediaKey}` });
+          }
         } else if (item.type === 'image') {
           finalMedia.push({ type: 'image', url: item.url });
         }
+      }
+      if (videoLink) {
+        finalMedia.push({ type: 'video', url: videoLink });
       }
     } else {
       finalMedia = oldMedia;
