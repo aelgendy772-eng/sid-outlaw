@@ -482,7 +482,6 @@ function extractEmbedUrl(url) {
 }
 
 async function uploadVideoToCloud(file) {
-  // 1. Uguu.se (يدعم CORS من المتصفح مباشرة ويرجع رابط مباشر للفيديو)
   try {
     const fd1 = new FormData();
     fd1.append('files[]', file);
@@ -494,7 +493,6 @@ async function uploadVideoToCloud(file) {
     }
   } catch (e) {}
 
-  // 2. Tmpfiles.org (يدعم CORS ويرجع رابط تحميل مباشر)
   try {
     const fd2 = new FormData();
     fd2.append('file', file);
@@ -507,20 +505,13 @@ async function uploadVideoToCloud(file) {
     }
   } catch (e) {}
 
-  // 3. Litterbox (يدعم CORS لمدة 72 ساعة)
-  try {
-    const fd3 = new FormData();
-    fd3.append('reqtype', 'fileupload');
-    fd3.append('time', '72h');
-    fd3.append('fileToUpload', file);
-    const res3 = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd3 });
-    if (res3.ok) {
-      const link3 = (await res3.text()).trim();
-      if (link3.startsWith('http')) return link3;
-    }
-  } catch (e) {}
-
-  return null;
+  // Fallback: convert video file to base64 data url directly in the database so it works universally across all devices instantly without external upload limits
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
 }
 
 window.showImg = function (el) {
@@ -780,7 +771,7 @@ window.saveRep = async function() {
           if (cloudUrl) {
             finalMedia.push({ type: 'video', url: cloudUrl });
           } else {
-            showToast('فشل الرفع السحابي التلقائي. يمكنك لصق رابط الفيديو في حقل الرابط الخارجي.', true);
+            showToast('فشل الرفع السحابي التلقائي. يرجى لصق رابط فيديو مباشر في حقل الرابط الخارجي.', true);
             const mediaKey = `vid_${Date.now()}_${i}`;
             await localMediaDB.put(mediaKey, item.file);
             finalMedia.push({ type: 'video', url: `idb:${mediaKey}` });
