@@ -1,546 +1,998 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SID Intelligence Portal | Outlaw Server</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-dark: #0a0c10;
-            --panel-bg: rgba(13, 17, 23, 0.85);
-            --border-color: rgba(0, 255, 136, 0.2);
-            --primary-glow: #00ff88;
-            --secondary-glow: #00bfff;
-            --text-main: #e6edf3;
-            --text-muted: #8b949e;
-            --danger: #ff4d4d;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SID Intelligence Portal | Outlaw Server</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg-dark:#0a0c10;--panel-bg:rgba(13,17,23,.92);--border-color:rgba(0,255,136,.2);--primary-glow:#00ff88;--secondary-glow:#00bfff;--text-main:#e6edf3;--text-muted:#8b949e;--danger:#ff4d4d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{color-scheme:dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',Tahoma,sans-serif}
+body{background:var(--bg-dark);color:var(--text-main);min-height:100vh;padding:20px}
+#login-screen{position:fixed;inset:0;background:rgba(5,7,10,.96);backdrop-filter:blur(10px);display:flex;justify-content:center;align-items:center;z-index:1000}
+.login-box{background:var(--panel-bg);border:2px solid var(--primary-glow);box-shadow:0 0 30px rgba(0,255,136,.2);padding:40px;border-radius:15px;width:100%;max-width:400px;text-align:center}
+.login-box h2{color:var(--primary-glow);margin-bottom:10px;font-size:26px}
+.login-box p{color:var(--text-muted);margin-bottom:25px;font-size:14px}
+.login-box input{width:100%;padding:12px;background:rgba(0,0,0,.6);border:1px solid var(--border-color);border-radius:8px;color:#fff;font-size:18px;text-align:center;letter-spacing:5px;margin-bottom:20px}
+.btn{background:linear-gradient(135deg,#00ff88,#00bfff);color:#05070a;border:none;padding:12px 25px;font-weight:700;border-radius:8px;cursor:pointer;width:100%;font-size:16px}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error-msg{color:var(--danger);margin-top:15px;font-size:14px;display:none}
+#main-app{display:none;max-width:1400px;margin:0 auto}
+header{background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:15px}
+.logo-area h1{color:var(--primary-glow);font-size:22px}
+.logo-area span{color:var(--text-muted);font-size:12px}
+.role-badge{background:rgba(0,191,255,.15);border:1px solid var(--secondary-glow);color:var(--secondary-glow);padding:6px 15px;border-radius:20px;font-size:13px;font-weight:700}
+.sync{font-size:12px;color:var(--text-muted)}
+.sync.ok{color:var(--primary-glow)}
+.sync.bad{color:var(--danger)}
+.tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{background:var(--panel-bg);border:1px solid var(--border-color);color:var(--text-muted);padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600}
+.tab-btn.active{background:rgba(0,255,136,.1);color:var(--primary-glow);border-color:var(--primary-glow)}
+.content-section{display:none;background:var(--panel-bg);border:1px solid var(--border-color);border-radius:12px;padding:25px}
+.content-section.active{display:block}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.section-header h2{font-size:18px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:right}
+th,td{padding:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+th{color:var(--text-muted);font-size:13px;background:rgba(0,0,0,.2)}
+td{font-size:14px}
+.badge-status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.status-online{background:rgba(0,255,136,.15);color:#00ff88}
+.status-mission{background:rgba(0,191,255,.15);color:#00bfff}
+.status-offline{background:rgba(139,148,158,.15);color:#8b949e}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border-color);background:transparent;color:#fff}
+.btn-danger{color:var(--danger);border-color:rgba(255,77,77,.3)}
+.btn-edit{color:var(--secondary-glow);border-color:rgba(0,191,255,.3)}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+.info-card{background:rgba(0,0,0,.35);border:1px solid var(--border-color);border-radius:8px;padding:15px}
+.info-card h3{color:var(--secondary-glow);margin-bottom:8px;font-size:15px}
+.info-card p{color:var(--text-muted);font-size:13px;line-height:1.5;margin-bottom:10px;white-space:pre-wrap}
+.empty{color:var(--text-muted);font-size:14px;padding:10px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);justify-content:center;align-items:center;z-index:2000;padding:15px}
+.modal-content{background:#0d1117;border:1px solid var(--primary-glow);padding:25px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-content h3{margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;margin-bottom:5px;font-size:12px;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px;background:rgba(0,0,0,.5);border:1px solid var(--border-color);border-radius:6px;color:#fff;font-size:13px}
+.form-group textarea{height:80px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.thumbs img{width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color);cursor:pointer}
+.video-wrap{position:relative;width:160px;height:95px;border-radius:6px;overflow:hidden;border:1px solid var(--secondary-glow);background:#000}
+.video-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.video-expand-btn{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.78);color:var(--primary-glow);border:1px solid var(--primary-glow);border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;z-index:5}
+.form-group input[type=file]{padding:6px;font-size:12px}
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:3000;justify-content:center;align-items:center;padding:20px;flex-direction:column;gap:12px}
+#lightbox img,#lightbox video{max-width:95%;max-height:85vh;border-radius:8px;border:1px solid var(--primary-glow);background:#000}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0d1117;border:1px solid var(--primary-glow);color:var(--primary-glow);padding:10px 22px;border-radius:8px;font-size:13px;z-index:4000;display:none;box-shadow:0 4px 20px rgba(0,0,0,.6)}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 70%),
-                linear-gradient(rgba(0,0,0,0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.5) 1px, transparent 1px);
-            background-size: 100% 100%, 20px 20px, 20px 20px;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 7, 10, 0.95); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-        }
-
-        .login-box {
-            background: var(--panel-bg); border: 2px solid var(--primary-glow);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
-            padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center;
-        }
-
-        .login-box h2 { color: var(--primary-glow); margin-bottom: 10px; font-size: 26px; letter-spacing: 2px; }
-        .login-box p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; }
-        .login-box input {
-            width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--border-color); border-radius: 8px; color: #fff;
-            font-size: 18px; text-align: center; letter-spacing: 5px; margin-bottom: 20px;
-        }
-        .login-box input:focus { border-color: var(--primary-glow); outline: none; box-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
-
-        .btn {
-            background: linear-gradient(135deg, #00ff88, #00bfff); color: #05070a;
-            border: none; padding: 12px 25px; font-weight: 700; border-radius: 8px;
-            cursor: pointer; transition: 0.3s; width: 100%; font-size: 16px;
-        }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 0 15px rgba(0, 255, 136, 0.5); }
-        .error-msg { color: var(--danger); margin-top: 15px; font-size: 14px; display: none; }
-
-        #main-app { display: none; max-width: 1400px; margin: 0 auto; padding: 20px; }
-
-        header {
-            background: var(--panel-bg); border: 1px solid var(--border-color);
-            border-radius: 12px; padding: 20px; display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        .logo-area h1 { color: var(--primary-glow); font-size: 24px; letter-spacing: 3px; }
-        .logo-area span { color: var(--text-muted); font-size: 13px; }
-
-        .header-badges { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        .role-badge-tag {
-            background: rgba(0, 191, 255, 0.15); border: 1px solid var(--secondary-glow);
-            color: var(--secondary-glow); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
-        }
-
-        .user-status-badge {
-            background: rgba(0, 255, 136, 0.1); border: 1px solid var(--primary-glow);
-            padding: 8px 15px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;
-        }
-        .live-dot {
-            width: 10px; height: 10px; background-color: var(--primary-glow);
-            border-radius: 50%; box-shadow: 0 0 8px var(--primary-glow); animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; }
-        .stat-info h3 { color: var(--text-muted); font-size: 13px; margin-bottom: 5px; }
-        .stat-info span { font-size: 22px; font-weight: 700; color: var(--primary-glow); }
-        .stat-icon { font-size: 28px; color: var(--secondary-glow); background: rgba(0, 191, 255, 0.1); padding: 10px; border-radius: 10px; }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 14px; }
-        .tab-btn.active, .tab-btn:hover { background: rgba(0, 255, 136, 0.1); color: var(--primary-glow); border-color: var(--primary-glow); }
-
-        .content-section { display: none; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .content-section.active { display: block; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .section-header h2 { font-size: 20px; color: var(--text-main); }
-
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: var(--text-muted); font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.2); }
-        td { font-size: 14px; }
-
-        .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .status-online { background: rgba(0, 255, 136, 0.15); color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
-        .status-mission { background: rgba(0, 191, 255, 0.15); color: #00bfff; border: 1px solid rgba(0,191,255,0.3); }
-        .status-undercover { background: rgba(255, 165, 0, 0.15); color: #ffa500; border: 1px solid rgba(255,165,0,0.3); }
-        .status-offline { background: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid rgba(139,148,158,0.3); }
-
-        .action-btns { display: flex; gap: 8px; }
-        .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border-color); background: transparent; color: #fff; transition: 0.2s; }
-        .btn-sm:hover { background: rgba(255,255,255,0.1); }
-        .btn-danger { color: var(--danger); border-color: rgba(255,77,77,0.3); }
-        .btn-danger:hover { background: rgba(255,77,77,0.1); }
-
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .info-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; }
-        .info-card h3 { color: var(--secondary-glow); margin-bottom: 10px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        .info-card p { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
-        .card-footer { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; align-items: center; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: var(--panel-bg); border: 1px solid var(--primary-glow); padding: 30px; border-radius: 12px; width: 100%; max-width: 450px; }
-        .modal-content h3 { color: var(--primary-glow); margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-size: 14px; }
-        .form-group textarea { height: 100px; resize: vertical; }
-
-        .sync-loader { font-size: 12px; color: var(--secondary-glow); margin-right: 15px; display: none; }
-        .admin-only { display: none; }
-    </style>
+/* شبكة الجريمة التفاعلية */
+.network-container{position:relative;width:100%;height:650px;background:#05070a;border:1px solid var(--border-color);border-radius:8px;overflow:hidden;cursor:grab}
+.network-container:active{cursor:grabbing}
+.network-canvas-layer{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.network-inner{position:absolute;inset:0;transform-origin:0 0}
+.node-card{position:absolute;width:200px;background:rgba(13,17,23,0.95);border:2px solid var(--secondary-glow);border-radius:8px;padding:10px;box-shadow:0 4px 15px rgba(0,0,0,0.5);cursor:move;user-select:none;z-index:10}
+.node-card.selected{border-color:var(--primary-glow);box-shadow:0 0 15px rgba(0,255,136,0.5)}
+.node-card img{width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;background:#000}
+.node-card h4{font-size:14px;color:#fff;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-card p{font-size:11px;color:var(--text-muted);margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.node-actions{display:flex;gap:4px;justify-content:space-between}
+.network-toolbar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
+.networks-list{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
+</style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>SID INTELLIGENCE</h2>
-            <p>أوتلاو سيرفر - منطقة أمنية محظورة</p>
-            <input type="password" id="pin-input" placeholder="الرمز السري" maxlength="6">
-            <button class="btn" onclick="checkPin()">دخول النظام</button>
-            <div id="error-msg" class="error-msg">رمز الدخول غير صحيح!</div>
-        </div>
+<div id="toast"></div>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h2>SID INTELLIGENCE</h2>
+    <p>أوتلاو سيرفر - دخول النظام الأمني</p>
+    <input type="password" id="pin-input" placeholder="الرمز السري" maxlength="6">
+    <button class="btn" onclick="checkPin()">دخول</button>
+    <div id="error-msg" class="error-msg">رمز الدخول غير صحيح!</div>
+  </div>
+</div>
+
+<div id="main-app">
+  <header>
+    <div class="logo-area">
+      <h1>SID DIVISION</h1>
+      <span>النظام المركزي للاستخبارات (صلاحية كاملة لجميع الأفراد)</span>
     </div>
-
-    <div id="main-app">
-        <header>
-            <div class="logo-area">
-                <h1>SID DIVISION</h1>
-                <span>النظام المركزي للاستخبارات والعمليات السرية</span>
-            </div>
-            <div class="header-badges">
-                <div id="role-display-tag" class="role-badge-tag">صلاحية: عضو استخبارات</div>
-                <span id="sync-status" class="sync-loader"><i class="fa-solid fa-rotate fa-spin"></i> جاري التحديث...</span>
-                <div class="user-status-badge">
-                    <div class="live-dot"></div>
-                    <span>المتواجدون الآن: <strong id="online-count">0</strong></span>
-                </div>
-            </div>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-info"><h3>إجمالي الأفراد</h3><span id="total-agents">0</span></div>
-                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info"><h3>أماكن الاجتماعات</h3><span id="total-safehouses">0</span></div>
-                <div class="stat-icon"><i class="fa-solid fa-location-dot"></i></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info"><h3>الترددات الأمنية</h3><span id="total-radios">0</span></div>
-                <div class="stat-icon"><i class="fa-solid fa-walkie-talkie"></i></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info"><h3>التقارير النشطة</h3><span id="total-reports">0</span></div>
-                <div class="stat-icon"><i class="fa-solid fa-file-shield"></i></div>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('roster')">جدول الأفراد</button>
-            <button class="tab-btn" onclick="switchTab('safehouses')">أماكن الاجتماعات والمواقع</button>
-            <button class="tab-btn" onclick="switchTab('radios')">ترددات الراديو السرية</button>
-            <button class="tab-btn" onclick="switchTab('reports')">الأرشيف والتقارير</button>
-            <button class="tab-btn" onclick="fetchCloudData()" style="border-color: var(--secondary-glow); color: var(--secondary-glow);"><i class="fa-solid fa-rotate"></i> تحديث</button>
-        </div>
-
-        <!-- تبويب الأفراد -->
-        <div id="roster-section" class="content-section active">
-            <div class="section-header">
-                <h2>قائمة أفراد وكالة SID</h2>
-                <button class="btn admin-only" style="width: auto; padding: 8px 15px; font-size: 14px;" onclick="openModal('agent-modal')">إضافة عميل جديد</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الرقم التعريفي (Badge ID)</th>
-                        <th>اسم العميل</th>
-                        <th>الرتبة</th>
-                        <th>الحالة الحالية</th>
-                        <th class="admin-only">إجراءات القائد</th>
-                    </tr>
-                </thead>
-                <tbody id="agents-table-body"></tbody>
-            </table>
-        </div>
-
-        <!-- تبويب أماكن الاجتماعات -->
-        <div id="safehouses-section" class="content-section">
-            <div class="section-header">
-                <h2>أماكن الاجتماعات، البيوت الآمنة وغرف العمليات</h2>
-                <button class="btn admin-only" style="width: auto; padding: 8px 15px; font-size: 14px;" onclick="openModal('safehouse-modal')">إضافة موقع جديد</button>
-            </div>
-            <div class="grid-cards" id="safehouses-grid-container"></div>
-        </div>
-
-        <!-- تبويب ترددات الراديو -->
-        <div id="radios-section" class="content-section">
-            <div class="section-header">
-                <h2>قنوات وترددات الراديو السرية</h2>
-                <button class="btn admin-only" style="width: auto; padding: 8px 15px; font-size: 14px;" onclick="openModal('radio-modal')">إضافة تردد جديد</button>
-            </div>
-            <div class="grid-cards" id="radios-grid-container"></div>
-        </div>
-
-        <!-- تبويب التقارير -->
-        <div id="reports-section" class="content-section">
-            <div class="section-header">
-                <h2>أرشيف العمليات والتقارير</h2>
-                <button class="btn admin-only" style="width: auto; padding: 8px 15px; font-size: 14px;" onclick="openModal('report-modal')">إضافة تقرير سري</button>
-            </div>
-            <div class="grid-cards" id="reports-grid-container"></div>
-        </div>
+    <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
+      <span id="sync" class="sync">جاري الاتصال...</span>
+      <div id="role-display" class="role-badge">عضو استخبارات</div>
     </div>
+  </header>
 
-    <!-- نوافذ الإضافة -->
-    <div id="agent-modal" class="modal">
-        <div class="modal-content">
-            <h3>تسجيل عميل جديد</h3>
-            <div class="form-group"><label>اسم العميل / المستعار</label><input type="text" id="agent-name" placeholder="مثال: Ghost"></div>
-            <div class="form-group"><label>الرتبة العسكرية / الوظيفية</label><input type="text" id="agent-rank" placeholder="مثال: محقق أول"></div>
-            <div class="form-group"><label>معرف الشارة (Badge ID)</label><input type="text" id="agent-badge" placeholder="مثال: SID-01"></div>
-            <div class="form-group">
-                <label>الحالة</label>
-                <select id="agent-status">
-                    <option value="online">متواجد</option>
-                    <option value="mission">في مهمة</option>
-                    <option value="undercover">تسلل سري</option>
-                    <option value="offline">غير متواجد</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" onclick="saveAgent()">حفظ العميل</button>
-                <button class="btn-sm btn-danger" style="flex:1;" onclick="closeModals()">إلغاء</button>
-            </div>
-        </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('roster', this)">جدول الأفراد</button>
+    <button class="tab-btn" onclick="switchTab('safehouses', this)">أماكن الاجتماعات</button>
+    <button class="tab-btn" onclick="switchTab('radios', this)">ترددات الراديو</button>
+    <button class="tab-btn" onclick="switchTab('reports', this)">التقارير السرية</button>
+    <button class="tab-btn" onclick="switchTab('network', this)" style="border-color:var(--primary-glow);color:var(--primary-glow)">🕸️ الشبكات الإجرامية</button>
+  </div>
+
+  <!-- جدول الأفراد -->
+  <div id="roster-section" class="content-section active">
+    <div class="section-header">
+      <h2>قائمة الأفراد والحالة (<span id="online-count" style="color:var(--primary-glow)">0</span> متواجدين)</h2>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openAgentModal()">إضافة عميل</button>
     </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الشارة</th><th>الاسم</th><th>الرتبة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+      <tbody id="agents-tbody"></tbody>
+    </table></div>
+  </div>
 
-    <div id="safehouse-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة مكان اجتماع أو بيت آمن</h3>
-            <div class="form-group"><label>اسم الموقع</label><input type="text" id="sh-title" placeholder="مثال: المستودع السري رقم 4"></div>
-            <div class="form-group"><label>وصف الموقع أو الإحداثيات</label><textarea id="sh-desc" placeholder="اكتب وصف المكان أو طريقة الدخول..."></textarea></div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" onclick="saveSafehouse()">حفظ الموقع</button>
-                <button class="btn-sm btn-danger" style="flex:1;" onclick="closeModals()">إلغاء</button>
-            </div>
-        </div>
+  <!-- أماكن الاجتماعات -->
+  <div id="safehouses-section" class="content-section">
+    <div class="section-header">
+      <h2>أماكن الاجتماعات والبيوت الآمنة</h2>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openSHModal()">إضافة موقع</button>
     </div>
+    <div class="grid-cards" id="sh-grid"></div>
+  </div>
 
-    <div id="radio-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة تردد راديو جديد</h3>
-            <div class="form-group"><label>اسم القناة / الغرض</label><input type="text" id="rd-name" placeholder="مثال: قناة الطوارئ والعمليات الخاصة"></div>
-            <div class="form-group"><label>رقم التردد</label><input type="text" id="rd-freq" placeholder="مثال: 154.5 MHz"></div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" onclick="saveRadio()">حفظ التردد</button>
-                <button class="btn-sm btn-danger" style="flex:1;" onclick="closeModals()">إلغاء</button>
-            </div>
-        </div>
+  <!-- ترددات الراديو -->
+  <div id="radios-section" class="content-section">
+    <div class="section-header">
+      <h2>ترددات الراديو السرية</h2>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openRDModal()">إضافة تردد</button>
     </div>
+    <div class="grid-cards" id="rd-grid"></div>
+  </div>
 
-    <div id="report-modal" class="modal">
-        <div class="modal-content">
-            <h3>إضافة تقرير استخباراتي</h3>
-            <div class="form-group"><label>عنوان التقرير</label><input type="text" id="report-title" placeholder="مثال: رصد تحركات"></div>
-            <div class="form-group"><label>تفاصيل التقرير والمعلومات</label><textarea id="report-desc" placeholder="اكتب التفاصيل..."></textarea></div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" onclick="saveReport()">حفظ النشرة</button>
-                <button class="btn-sm btn-danger" style="flex:1;" onclick="closeModals()">إلغاء</button>
-            </div>
-        </div>
+  <!-- التقارير -->
+  <div id="reports-section" class="content-section">
+    <div class="section-header">
+      <h2>التقارير الاستخباراتية</h2>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openRepModal()">إضافة تقرير</button>
     </div>
+    <div class="grid-cards" id="rep-grid"></div>
+  </div>
 
-    <script>
-        const BIN_ID = "6729577ead19ca34f8cd62ae";
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-        const API_KEY = "$2a$10$wN3Zg6yUvF5S4rG5Rk3E..hV9j4nQk2t5v0m3K8LqX7j9eX6Z8l7m";
+  <!-- الشبكات الإجرامية التفاعلية المتعددة -->
+  <div id="network-section" class="content-section">
+    <div class="section-header">
+      <h2>الشبكات الإجرامية والتحقيقات المرئية</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openCreateNetModal()">+ إنشاء شبكة جديدة</button>
+        <button class="btn" style="width:auto;padding:6px 12px;font-size:13px" onclick="openNodeModal()">+ إضافة عنصر للشبكة</button>
+      </div>
+    </div>
+    
+    <div class="networks-list" id="networks-tabs-container"></div>
 
-        let isAdmin = false;
+    <div class="network-toolbar">
+      <span style="font-size:12px;color:var(--text-muted)">💡 إرشادات: اسحب أي عنصر لتغيير مكانه. اضغط على "ربط 🧶" في عنصر ثم اضغط على عنصر آخر لتوصيل حبل بينهما.</span>
+      <button class="btn-sm btn-edit" onclick="resetZoom()" style="margin-right:auto">إعادة ضبط العرض</button>
+    </div>
+    <div class="network-container" id="network-container">
+      <canvas class="network-canvas-layer" id="network-canvas-layer"></canvas>
+      <div class="network-inner" id="network-inner"></div>
+    </div>
+  </div>
+</div>
 
-        let appData = {
-            agents: [
-                { id: 1, name: "Kareem", rank: "مدير العمليات", badge: "SID-001", status: "online" },
-                { id: 2, name: "Ghost", rank: "محقق أول", badge: "SID-007", status: "mission" }
-            ],
-            safehouses: [
-                { id: 1, title: "المقر الرئيسي السري", desc: "القبو السفلي تحت مبنى اللوجستيات - مخصص للاجتماعات الكبرى." }
-            ],
-            radios: [
-                { id: 1, name: "قناة العمليات والفرقة الأساسية", freq: "99.9 MHz" },
-                { id: 2, name: "قناة التسلل والعمليات السرية", freq: "45.2 MHz" }
-            ],
-            reports: [
-                { id: 1, title: "حالة طوارئ الميناء", desc: "تم رصد تحركات مشبوهة.", date: "2026-11-02" }
-            ]
+<!-- عارض الصور والفيديوهات بملء الشاشة -->
+<div id="lightbox" onclick="if(event.target===this) closeLightbox()">
+  <img id="lightbox-img" alt="" style="display:none">
+  <video id="lightbox-vid" controls playsinline style="display:none"></video>
+  <button class="btn-sm btn-danger" onclick="closeLightbox()" style="padding:8px 20px;font-size:14px">إغلاق المعاينة ✕</button>
+</div>
+
+<!-- مودال العميل -->
+<div id="agent-modal" class="modal"><div class="modal-content">
+  <h3 id="ag-modal-title">إضافة عميل</h3>
+  <input type="hidden" id="ag-edit-id">
+  <div class="form-group"><label>الاسم</label><input type="text" id="ag-name"></div>
+  <div class="form-group"><label>الرتبة</label><input type="text" id="ag-rank"></div>
+  <div class="form-group"><label>الشارة</label><input type="text" id="ag-badge"></div>
+  <div class="form-group"><label>الحالة</label><select id="ag-status"><option value="online">متواجد</option><option value="mission">في مهمة</option><option value="offline">غير متواجد</option></select></div>
+  <button class="btn" onclick="saveAgent()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال الموقع -->
+<div id="sh-modal" class="modal"><div class="modal-content">
+  <h3 id="sh-modal-title">إضافة موقع</h3>
+  <input type="hidden" id="sh-edit-id">
+  <div class="form-group"><label>اسم الموقع</label><input type="text" id="sh-title"></div>
+  <div class="form-group"><label>الوصف</label><textarea id="sh-desc"></textarea></div>
+  <div class="form-group"><label>صور (اختياري، حتى 4)</label><input type="file" id="sh-photos" accept="image/*" multiple></div>
+  <button class="btn" onclick="saveSH()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال التردد -->
+<div id="rd-modal" class="modal"><div class="modal-content">
+  <h3 id="rd-modal-title">إضافة تردد</h3>
+  <input type="hidden" id="rd-edit-id">
+  <div class="form-group"><label>اسم القناة</label><input type="text" id="rd-name"></div>
+  <div class="form-group"><label>التردد</label><input type="text" id="rd-freq"></div>
+  <button class="btn" onclick="saveRD()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال التقرير -->
+<div id="rep-modal" class="modal"><div class="modal-content">
+  <h3 id="rep-modal-title">إضافة تقرير</h3>
+  <input type="hidden" id="rep-edit-id">
+  <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
+  <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
+  <div class="form-group"><label>صور أو فيديوهات (بدون حد أقصى للحجم)</label><input type="file" id="rep-photos" accept="image/*,video/*" multiple></div>
+  <button class="btn" id="rep-save-btn" onclick="saveRep()">حفظ</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال إنشاء شبكة جديدة -->
+<div id="net-modal" class="modal"><div class="modal-content">
+  <h3>إنشاء شبكة إجرامية جديدة</h3>
+  <div class="form-group"><label>اسم الشبكة / القضية</label><input type="text" id="net-title-input"></div>
+  <button class="btn" onclick="createNewNetwork()">إنشاء</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال عنصر الشبكة الإجرامية -->
+<div id="node-modal" class="modal"><div class="modal-content">
+  <h3>إضافة عنصر للشبكة الحالية</h3>
+  <div class="form-group"><label>الاسم / العنوان</label><input type="text" id="node-name"></div>
+  <div class="form-group"><label>ملاحظات / وصف مختصر</label><textarea id="node-desc"></textarea></div>
+  <div class="form-group"><label>صورة (اختياري)</label><input type="file" id="node-photo" accept="image/*"></div>
+  <button class="btn" onclick="saveNode()">إضافة للشبكة</button>
+  <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
+</div></div>
+
+<!-- مودال تأكيد الحذف المخصص -->
+<div id="confirm-modal" class="modal"><div class="modal-content" style="max-width:340px;text-align:center">
+  <h3 id="confirm-msg" style="margin-bottom:18px;font-size:16px">هل أنت متأكد من الحذف؟</h3>
+  <div style="display:flex;gap:10px">
+    <button class="btn" id="confirm-yes-btn" style="background:var(--danger);color:#fff">نعم، احذف</button>
+    <button class="btn-sm" style="flex:1" onclick="closeConfirm(false)">إلغاء</button>
+  </div>
+</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const DATABASE_URL = "https://sid-outlaw-default-rtdb.firebaseio.com";
+
+let db = null;
+const store = { agents: [], safehouses: [], radios: [], reports: [], networks: {}, nodes: {}, links: {} };
+let currentNetworkId = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function setSync(text, cls) {
+  const el = $('sync');
+  if (el) { el.textContent = text; el.className = 'sync ' + (cls || ''); }
+}
+
+function showToast(msg, isError = false) {
+  const t = $('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'var(--danger)' : 'var(--primary-glow)';
+  t.style.color = isError ? 'var(--danger)' : 'var(--primary-glow)';
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+let confirmResolver = null;
+function askConfirm(msg) {
+  $('confirm-msg').textContent = msg || 'هل أنت متأكد؟';
+  $('confirm-modal').style.display = 'flex';
+  return new Promise(resolve => { confirmResolver = resolve; });
+}
+window.closeConfirm = function(result) {
+  $('confirm-modal').style.display = 'none';
+  if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
+};
+$('confirm-yes-btn').onclick = () => window.closeConfirm(true);
+
+// تخزين الفيديوهات محلياً بصيغتها الأصلية (Blob) بدون حد أقصى للحجم
+const localMediaDB = {
+  dbInstance: null,
+  async init() {
+    if (this.dbInstance) return this.dbInstance;
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('SID_Media_DB', 2);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('media')) d.createObjectStore('media', { keyPath: 'id' });
+      };
+      req.onsuccess = e => { this.dbInstance = e.target.result; resolve(this.dbInstance); };
+      req.onerror = e => reject(e.target.error);
+    });
+  },
+  async put(id, fileBlob) {
+    const d = await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = d.transaction('media', 'readwrite');
+      tx.objectStore('media').put({ id, file: fileBlob });
+      tx.oncomplete = () => resolve(id);
+      tx.onerror = e => reject(e.target.error);
+    });
+  },
+  async get(id) {
+    try {
+      const d = await this.init();
+      return new Promise((resolve) => {
+        const tx = d.transaction('media', 'readonly');
+        const req = tx.objectStore('media').get(id);
+        req.onsuccess = () => {
+          const res = req.result;
+          if (!res) return resolve('');
+          const raw = res.file || res.dataUrl;
+          if (raw instanceof Blob) return resolve(URL.createObjectURL(raw));
+          resolve(raw || '');
         };
+        req.onerror = () => resolve('');
+      });
+    } catch (e) { return ''; }
+  }
+};
 
-        function checkPin() {
-            const pin = document.getElementById('pin-input').value;
-            if(pin === '12459') {
-                isAdmin = true;
-                document.getElementById('role-display-tag').innerText = "صلاحية: 🔓 قائد الفرقة";
-                document.getElementById('role-display-tag').style.borderColor = "#00ff88";
-                document.getElementById('role-display-tag').style.color = "#00ff88";
-                enterPortal();
-            } else if(pin === '7365') {
-                isAdmin = false;
-                document.getElementById('role-display-tag').innerText = "صلاحية: 👁️ مشاهدة فقط (عضو)";
-                enterPortal();
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-            }
+window.checkPin = function () {
+  const pin = $('pin-input').value;
+  if (pin === '12459' || pin === '7365') {
+    $('role-display').innerText = pin === '12459' ? '🔓 قائد الفرقة (صلاحية كاملة)' : '🟢 عضو استخبارات (صلاحية كاملة)';
+    startApp();
+  } else {
+    $('error-msg').style.display = 'block';
+  }
+};
+
+function startApp() {
+  $('login-screen').style.display = 'none';
+  $('main-app').style.display = 'block';
+  render();
+  connect();
+  initNetworkInteraction();
+}
+
+function connect() {
+  if (!DATABASE_URL || DATABASE_URL.startsWith('PUT_')) { setSync('لم يتم ربط قاعدة البيانات بعد', 'bad'); return; }
+  try {
+    db = getDatabase(initializeApp({ databaseURL: DATABASE_URL }));
+  } catch (e) { setSync('خطأ في إعداد قاعدة البيانات', 'bad'); return; }
+  const timer = setTimeout(() => setSync('تعذر الوصول للبيانات حالياً', 'bad'), 10000);
+
+  const keys = ['agents', 'safehouses', 'radios', 'reports', 'networks', 'nodes', 'links'];
+  keys.forEach(name => {
+    onValue(ref(db, name), snap => {
+      clearTimeout(timer);
+      const v = snap.val() || {};
+      if (name !== 'networks' && name !== 'nodes' && name !== 'links') {
+        store[name] = Object.entries(v).map(([id, o]) => ({ id, ...o })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      } else {
+        store[name] = v;
+        if (name === 'networks') {
+          const netKeys = Object.keys(v);
+          if (netKeys.length > 0 && (!currentNetworkId || !v[currentNetworkId])) {
+            currentNetworkId = netKeys[0];
+          }
         }
+      }
+      setSync('متصل ومتزامن ✓', 'ok');
+      render();
+    }, () => { clearTimeout(timer); setSync('خطأ في الاتصال أو الصلاحيات', 'bad'); });
+  });
+}
 
-        function enterPortal() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
+async function saveData(path, id, obj) {
+  if (!db) { showToast('قاعدة البيانات غير متصلة.', true); return false; }
+  try {
+    if (id) {
+      await set(ref(db, `${path}/${id}`), obj);
+      return id;
+    } else {
+      const newRef = push(ref(db, path));
+      await set(newRef, { ...obj, createdAt: Date.now() });
+      return newRef.key;
+    }
+  } catch (e) { showToast('تعذر الحفظ في قاعدة البيانات.', true); return false; }
+}
 
-            if(isAdmin) {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
-            } else {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-            }
+window.del = async function (name, id) {
+  if (!db) return;
+  if (await askConfirm('هل أنت متأكد من الحذف؟')) {
+    try { await remove(ref(db, name + '/' + id)); showToast('تم الحذف ✓'); }
+    catch (e) { showToast('تعذر الحذف.', true); }
+  }
+};
 
-            fetchCloudData();
-            setInterval(fetchCloudData, 10000);
+window.switchTab = function (tab, btn) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  $(tab + '-section').classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'network') { resizeCanvas(); drawNetwork(); }
+};
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const max = 800, ratio = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * ratio); c.height = Math.round(img.height * ratio);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function readPhotos(inputId) {
+  const files = Array.from($(inputId).files || []).slice(0, 4);
+  const out = [];
+  for (const f of files) { try { out.push(await compressImage(f)); } catch (e) {} }
+  return out;
+}
+
+async function readReportMedia(inputId) {
+  const files = Array.from($(inputId).files || []);
+  const out = [];
+  for (const f of files) {
+    try {
+      if (f.type && f.type.startsWith('video/')) {
+        out.push({ type: 'video', file: f });
+      } else if (f.type && f.type.startsWith('image/')) {
+        const imgUrl = await compressImage(f);
+        out.push({ type: 'image', url: imgUrl });
+      }
+    } catch (e) {}
+  }
+  return out;
+}
+
+window.showImg = function (el) {
+  const vid = $('lightbox-vid');
+  const img = $('lightbox-img');
+  if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); vid.style.display = 'none'; }
+  if (img) { img.src = el.src; img.style.display = 'block'; }
+  $('lightbox').style.display = 'flex';
+};
+
+window.showVid = async function (srcOrId) {
+  const vid = $('lightbox-vid');
+  const img = $('lightbox-img');
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  let finalSrc = srcOrId;
+  if (typeof srcOrId === 'string' && srcOrId.startsWith('idb:')) {
+    finalSrc = await localMediaDB.get(srcOrId.slice(4));
+  }
+  if (!finalSrc) {
+    showToast('تعذر العثور على ملف الفيديو في هذا الجهاز.', true);
+    return;
+  }
+  if (vid) {
+    vid.src = finalSrc;
+    vid.style.display = 'block';
+    $('lightbox').style.display = 'flex';
+    vid.load();
+    vid.play().catch(() => {});
+  }
+};
+
+window.closeLightbox = function () {
+  const vid = $('lightbox-vid');
+  if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); }
+  $('lightbox').style.display = 'none';
+};
+
+function thumbs(list) {
+  if (!Array.isArray(list) || !list.length) return '';
+  return '<div class="thumbs">' + list.filter(p => typeof p === 'string' && p.startsWith('data:image/')).map(p => `<img src="${p}" alt="" onclick="showImg(this)">`).join('') + '</div>';
+}
+
+function renderReportMedia(rep) {
+  const rawList = Array.isArray(rep.media) && rep.media.length ? rep.media : (Array.isArray(rep.photos) ? rep.photos : []);
+  if (!rawList.length) return '';
+
+  const htmlItems = rawList.map((item, idx) => {
+    const url = typeof item === 'string' ? item : (item && item.url ? item.url : '');
+    const isVideo = (item && item.type === 'video') || (typeof url === 'string' && (url.startsWith('data:video/') || url.startsWith('idb:')));
+    const isImage = (item && item.type === 'image') || (typeof url === 'string' && url.startsWith('data:image/'));
+
+    if (isVideo) {
+      const vidDomId = `rep-vid-${esc(rep.id)}-${idx}`;
+      const isIdb = typeof url === 'string' && url.startsWith('idb:');
+      const safeSrc = isIdb ? '' : url;
+      if (isIdb) {
+        setTimeout(async () => {
+          const el = $(vidDomId);
+          if (el) {
+            const loaded = await localMediaDB.get(url.slice(4));
+            if (loaded) { el.src = loaded; el.load(); }
+          }
+        }, 0);
+      }
+      return `<div class="video-wrap">
+        <button type="button" class="video-expand-btn" onclick="showVid('${esc(url)}')">تكبير ⛶</button>
+        <video id="${vidDomId}" ${safeSrc ? `src="${safeSrc}"` : ''} controls playsinline preload="metadata"></video>
+      </div>`;
+    } else if (isImage) {
+      return `<img src="${url}" alt="" onclick="showImg(this)">`;
+    }
+    return '';
+  }).filter(Boolean);
+
+  return htmlItems.length ? `<div class="thumbs">${htmlItems.join('')}</div>` : '';
+}
+
+function render() {
+  // الأفراد وعدد المتواجدين
+  const onlineCount = store.agents.filter(a => a.status === 'online').length;
+  if ($('online-count')) $('online-count').textContent = onlineCount;
+
+  $('agents-tbody').innerHTML = store.agents.map(ag => {
+    const cls = ag.status === 'online' ? 'status-online' : ag.status === 'mission' ? 'status-mission' : 'status-offline';
+    const txt = ag.status === 'online' ? 'متواجد' : ag.status === 'mission' ? 'في مهمة' : 'غير متواجد';
+    return `<tr><td><code>${esc(ag.badge)}</code></td><td><strong>${esc(ag.name)}</strong></td><td>${esc(ag.rank)}</td><td><span class="badge-status ${cls}">${txt}</span></td><td><button class="btn-sm btn-edit" onclick="editAgent('${ag.id}')">تعديل</button> <button class="btn-sm btn-danger" onclick="del('agents','${ag.id}')">حذف</button></td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">لا يوجد أفراد بعد</td></tr>';
+
+  // المواقع
+  $('sh-grid').innerHTML = store.safehouses.map(sh =>
+    `<div class="info-card"><h3>${esc(sh.title)}</h3>${thumbs(sh.photos)}<p>${esc(sh.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editSH('${sh.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('safehouses','${sh.id}')">حذف</button></div></div>`
+  ).join('') || '<div class="empty">لا توجد مواقع بعد</div>';
+
+  // الترددات
+  $('rd-grid').innerHTML = store.radios.map(rd =>
+    `<div class="info-card"><h3>${esc(rd.name)}</h3><p>التردد: <code style="color:var(--primary-glow)">${esc(rd.freq)}</code></p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRD('${rd.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('radios','${rd.id}')">حذف</button></div></div>`
+  ).join('') || '<div class="empty">لا توجد ترددات بعد</div>';
+
+  // التقارير
+  $('rep-grid').innerHTML = store.reports.map(rep =>
+    `<div class="info-card"><h3>${esc(rep.title)}</h3>${renderReportMedia(rep)}<p>${esc(rep.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRep('${rep.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('reports','${rep.id}')">حذف</button></div></div>`
+  ).join('') || '<div class="empty">لا توجد تقارير بعد</div>';
+
+  renderNetworksList();
+  drawNetwork();
+}
+
+window.closeModals = function () { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); };
+
+// دوال الأفراد والمواقع والتقارير
+window.openAgentModal = function() {
+  $('ag-edit-id').value = '';
+  $('ag-name').value = ''; $('ag-rank').value = ''; $('ag-badge').value = ''; $('ag-status').value = 'online';
+  $('ag-modal-title').innerText = 'إضافة عميل';
+  $('agent-modal').style.display = 'flex';
+};
+window.editAgent = function(id) {
+  const ag = store.agents.find(x => x.id === id);
+  if (!ag) return;
+  $('ag-edit-id').value = ag.id;
+  $('ag-name').value = ag.name || '';
+  $('ag-rank').value = ag.rank || '';
+  $('ag-badge').value = ag.badge || '';
+  $('ag-status').value = ag.status || 'online';
+  $('ag-modal-title').innerText = 'تعديل بيانات العميل';
+  $('agent-modal').style.display = 'flex';
+};
+window.saveAgent = async function() {
+  const id = $('ag-edit-id').value;
+  const data = { name: $('ag-name').value, rank: $('ag-rank').value, badge: $('ag-badge').value, status: $('ag-status').value };
+  if (id) data.createdAt = store.agents.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('agents', id || null, data);
+  if (ok) { showToast('تم حفظ العميل ✓'); closeModals(); }
+};
+
+window.openSHModal = function() {
+  $('sh-edit-id').value = '';
+  $('sh-title').value = ''; $('sh-desc').value = ''; $('sh-photos').value = '';
+  $('sh-modal-title').innerText = 'إضافة موقع';
+  $('sh-modal').style.display = 'flex';
+};
+window.editSH = function(id) {
+  const sh = store.safehouses.find(x => x.id === id);
+  if (!sh) return;
+  $('sh-edit-id').value = sh.id;
+  $('sh-title').value = sh.title || '';
+  $('sh-desc').value = sh.desc || '';
+  $('sh-photos').value = '';
+  $('sh-modal-title').innerText = 'تعديل الموقع';
+  $('sh-modal').style.display = 'flex';
+};
+window.saveSH = async function() {
+  const id = $('sh-edit-id').value;
+  const photos = await readPhotos('sh-photos');
+  const oldPhotos = store.safehouses.find(x => x.id === id)?.photos || [];
+  const data = { title: $('sh-title').value, desc: $('sh-desc').value, photos: photos.length ? photos : oldPhotos };
+  if (id) data.createdAt = store.safehouses.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('safehouses', id || null, data);
+  if (ok) { showToast('تم حفظ الموقع ✓'); closeModals(); }
+};
+
+window.openRDModal = function() {
+  $('rd-edit-id').value = '';
+  $('rd-name').value = ''; $('rd-freq').value = '';
+  $('rd-modal-title').innerText = 'إضافة تردد';
+  $('rd-modal').style.display = 'flex';
+};
+window.editRD = function(id) {
+  const rd = store.radios.find(x => x.id === id);
+  if (!rd) return;
+  $('rd-edit-id').value = rd.id;
+  $('rd-name').value = rd.name || '';
+  $('rd-freq').value = rd.freq || '';
+  $('rd-modal-title').innerText = 'تعديل التردد';
+  $('rd-modal').style.display = 'flex';
+};
+window.saveRD = async function() {
+  const id = $('rd-edit-id').value;
+  const data = { name: $('rd-name').value, freq: $('rd-freq').value };
+  if (id) data.createdAt = store.radios.find(x => x.id === id)?.createdAt || Date.now();
+  const ok = await saveData('radios', id || null, data);
+  if (ok) { showToast('تم حفظ التردد ✓'); closeModals(); }
+};
+
+window.openRepModal = function() {
+  $('rep-edit-id').value = '';
+  $('rep-title').value = ''; $('rep-desc').value = ''; $('rep-photos').value = '';
+  $('rep-modal-title').innerText = 'إضافة تقرير';
+  $('rep-modal').style.display = 'flex';
+};
+window.editRep = function(id) {
+  const rep = store.reports.find(x => x.id === id);
+  if (!rep) return;
+  $('rep-edit-id').value = rep.id;
+  $('rep-title').value = rep.title || '';
+  $('rep-desc').value = rep.desc || '';
+  $('rep-photos').value = '';
+  $('rep-modal-title').innerText = 'تعديل التقرير';
+  $('rep-modal').style.display = 'flex';
+};
+window.saveRep = async function() {
+  const btn = $('rep-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'جاري المعالجة والحفظ...';
+  try {
+    const id = $('rep-edit-id').value;
+    const newMedia = await readReportMedia('rep-photos');
+    const existingRep = store.reports.find(x => x.id === id);
+    const oldMedia = existingRep ? (existingRep.media || existingRep.photos || []) : [];
+
+    let finalMedia = [];
+    if (newMedia.length) {
+      for (let i = 0; i < newMedia.length; i++) {
+        const item = newMedia[i];
+        if (item.type === 'video' && item.file) {
+          const mediaKey = `vid_${Date.now()}_${i}`;
+          await localMediaDB.put(mediaKey, item.file);
+          finalMedia.push({ type: 'video', url: `idb:${mediaKey}` });
+        } else if (item.type === 'image') {
+          finalMedia.push({ type: 'image', url: item.url });
         }
+      }
+    } else {
+      finalMedia = oldMedia;
+    }
 
-        async function fetchCloudData() {
-            showSync(true);
-            try {
-                const response = await fetch(API_URL, { headers: { 'X-Access-Key': API_KEY } });
-                const result = await response.json();
-                if(result.record && result.record.agents) {
-                    appData = result.record;
-                    if(!appData.safehouses) appData.safehouses = [];
-                    if(!appData.radios) appData.radios = [];
-                    renderApp();
-                }
-            } catch (e) { renderApp(); }
-            showSync(false);
-        }
+    const data = {
+      title: $('rep-title').value,
+      desc: $('rep-desc').value,
+      media: finalMedia,
+      photos: finalMedia.map(m => typeof m === 'string' ? m : m.url)
+    };
+    if (id) data.createdAt = existingRep?.createdAt || Date.now();
 
-        async function saveToCloud() {
-            if(!isAdmin) return;
-            showSync(true);
-            try {
-                await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
-                    body: JSON.stringify(appData)
-                });
-            } catch (e) {}
-            showSync(false);
-            renderApp();
-        }
+    const ok = await saveData('reports', id || null, data);
+    if (ok) {
+      showToast('تم حفظ التقرير بنجاح ✓');
+      closeModals();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'حفظ';
+  }
+};
 
-        function showSync(show) {
-            document.getElementById('sync-status').style.display = show ? 'inline-block' : 'none';
-        }
+// ===== الشبكات الإجرامية المتعددة =====
+window.openCreateNetModal = function() {
+  $('net-title-input').value = '';
+  $('net-modal').style.display = 'flex';
+};
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            if(tabName === 'roster') document.getElementById('roster-section').classList.add('active');
-            else if(tabName === 'safehouses') document.getElementById('safehouses-section').classList.add('active');
-            else if(tabName === 'radios') document.getElementById('radios-section').classList.add('active');
-            else if(tabName === 'reports') document.getElementById('reports-section').classList.add('active');
-            
-            event.currentTarget.classList.add('active');
-        }
+window.createNewNetwork = async function() {
+  const title = $('net-title-input').value.trim();
+  if (!title) { showToast('أدخل اسم الشبكة أولاً.', true); return; }
+  const newId = 'net_' + Date.now();
+  await saveData('networks', newId, { id: newId, title });
+  currentNetworkId = newId;
+  closeModals();
+  renderNetworksList();
+  drawNetwork();
+  showToast('تم إنشاء الشبكة ✓');
+};
 
-        function renderApp() {
-            // رندر الأفراد
-            const tbody = document.getElementById('agents-table-body');
-            tbody.innerHTML = '';
-            let onlineCount = 0;
+window.switchNetwork = function(netId) {
+  currentNetworkId = netId;
+  connectingNodeId = null;
+  renderNetworksList();
+  drawNetwork();
+};
 
-            appData.agents.forEach((agent, index) => {
-                if(agent.status === 'online' || agent.status === 'mission') onlineCount++;
-                let statusText = '', statusClass = '';
-                switch(agent.status) {
-                    case 'online': statusText = 'متواجد'; statusClass = 'status-online'; break;
-                    case 'mission': statusText = 'في مهمة'; statusClass = 'status-mission'; break;
-                    case 'undercover': statusText = 'تسلل سري'; statusClass = 'status-undercover'; break;
-                    case 'offline': statusText = 'غير متواجد'; statusClass = 'status-offline'; break;
-                }
+window.deleteCurrentNetwork = async function() {
+  if (!currentNetworkId) return;
+  if (!(await askConfirm('حذف هذه الشبكة بكل عناصرها وخيوطها؟'))) return;
+  const netId = currentNetworkId;
 
-                let actionsHTML = isAdmin ? `<td><div class="action-btns"><button class="btn-sm" onclick="cycleStatus(${index})">تغيير الحالة</button><button class="btn-sm btn-danger" onclick="deleteItem('agents', ${index})">حذف</button></div></td>` : '';
+  const nodes = store.nodes || {};
+  for (const [nid, node] of Object.entries(nodes)) {
+    if (node.networkId === netId) await remove(ref(db, `nodes/${nid}`));
+  }
+  const links = store.links || {};
+  for (const [lid, link] of Object.entries(links)) {
+    if (link.networkId === netId) await remove(ref(db, `links/${lid}`));
+  }
+  await remove(ref(db, `networks/${netId}`));
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td><code>${agent.badge}</code></td>
-                        <td><strong>${agent.name}</strong></td>
-                        <td>${agent.rank}</td>
-                        <td><span class="badge-status ${statusClass}">${statusText}</span></td>
-                        ${actionsHTML}
-                    </tr>
-                `;
-            });
+  const remainingNets = Object.keys(store.networks || {}).filter(id => id !== netId);
+  currentNetworkId = remainingNets.length > 0 ? remainingNets[0] : null;
+  renderNetworksList();
+  drawNetwork();
+  showToast('تم حذف الشبكة ✓');
+};
 
-            document.getElementById('online-count').innerText = onlineCount;
-            document.getElementById('total-agents').innerText = appData.agents.length;
-            document.getElementById('total-safehouses').innerText = appData.safehouses ? appData.safehouses.length : 0;
-            document.getElementById('total-radios').innerText = appData.radios ? appData.radios.length : 0;
-            document.getElementById('total-reports').innerText = appData.reports.length;
+function renderNetworksList() {
+  const nets = store.networks || {};
+  const container = $('networks-tabs-container');
+  const netKeys = Object.keys(nets);
 
-            // رندر أماكن الاجتماعات
-            const shGrid = document.getElementById('safehouses-grid-container');
-            shGrid.innerHTML = '';
-            if(appData.safehouses) {
-                appData.safehouses.forEach((sh, index) => {
-                    let delBtn = isAdmin ? `<button class="btn-sm btn-danger" onclick="deleteItem('safehouses', ${index})">حذف الموقع</button>` : '';
-                    shGrid.innerHTML += `
-                        <div class="info-card">
-                            <h3><i class="fa-solid fa-location-crosshairs"></i> ${sh.title}</h3>
-                            <p>${sh.desc}</p>
-                            <div class="card-footer"><span>مكان آمن معتمد</span>${delBtn}</div>
-                        </div>
-                    `;
-                });
-            }
+  if (netKeys.length === 0) {
+    container.innerHTML = '<span style="color:var(--text-muted);font-size:13px">لا توجد شبكات حالياً. انشئ شبكة جديدة للبدء.</span>';
+    return;
+  }
 
-            // رندر الراديو
-            const rdGrid = document.getElementById('radios-grid-container');
-            rdGrid.innerHTML = '';
-            if(appData.radios) {
-                appData.radios.forEach((rd, index) => {
-                    let delBtn = isAdmin ? `<button class="btn-sm btn-danger" onclick="deleteItem('radios', ${index})">حذف التردد</button>` : '';
-                    rdGrid.innerHTML += `
-                        <div class="info-card">
-                            <h3><i class="fa-solid fa-walkie-talkie"></i> ${rd.name}</h3>
-                            <p><strong>التردد المشفر:</strong> <code style="color:var(--primary-glow); font-size:16px;">${rd.freq}</code></p>
-                            <div class="card-footer"><span>قناة مشفرة</span>${delBtn}</div>
-                        </div>
-                    `;
-                });
-            }
+  if (!currentNetworkId || !nets[currentNetworkId]) {
+    currentNetworkId = netKeys[0];
+  }
 
-            // رندر التقارير
-            const reportsGrid = document.getElementById('reports-grid-container');
-            reportsGrid.innerHTML = '';
-            appData.reports.forEach((rep, index) => {
-                let reportDeleteBtn = isAdmin ? `<button class="btn-sm btn-danger" onclick="deleteItem('reports', ${index})">حذف التقرير</button>` : '';
-                reportsGrid.innerHTML += `
-                    <div class="info-card">
-                        <h3><i class="fa-solid fa-triangle-exclamation"></i> ${rep.title}</h3>
-                        <p>${rep.desc}</p>
-                        <div class="card-footer"><span>التاريخ: ${rep.date}</span>${reportDeleteBtn}</div>
-                    </div>
-                `;
-            });
-        }
+  container.innerHTML = netKeys.map(id => {
+    const net = nets[id];
+    const isActive = id === currentNetworkId;
+    return `<button class="tab-btn ${isActive ? 'active' : ''}" onclick="switchNetwork('${id}')" style="padding:6px 14px;font-size:13px">${esc(net.title)}</button>`;
+  }).join('') + `<button class="btn-sm btn-danger" onclick="deleteCurrentNetwork()" style="margin-right:auto">حذف الشبكة الحالية</button>`;
+}
 
-        function cycleStatus(index) {
-            if(!isAdmin) return;
-            const statuses = ['online', 'mission', 'undercover', 'offline'];
-            let currentIdx = statuses.indexOf(appData.agents[index].status);
-            appData.agents[index].status = statuses[(currentIdx + 1) % statuses.length];
-            saveToCloud();
-        }
+// ===== إدارة العناصر والخيوط =====
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, startX = 0, startY = 0;
+let connectingNodeId = null;
+let draggingNodeId = null;
 
-        function openModal(id) { if(isAdmin) document.getElementById(id).style.display = 'flex'; }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+window.openNodeModal = function() {
+  if (!currentNetworkId) {
+    showToast('الرجاء إنشاء شبكة أولاً قبل إضافة العناصر.', true);
+    return;
+  }
+  $('node-name').value = ''; $('node-desc').value = ''; $('node-photo').value = '';
+  $('node-modal').style.display = 'flex';
+};
 
-        function saveAgent() {
-            if(!isAdmin) return;
-            const name = document.getElementById('agent-name').value;
-            const rank = document.getElementById('agent-rank').value;
-            const badge = document.getElementById('agent-badge').value;
-            const status = document.getElementById('agent-status').value;
-            if(!name || !badge) { alert('أدخل الاسم ورقم الشارة.'); return; }
-            appData.agents.push({ id: Date.now(), name, rank, badge, status });
-            closeModals(); saveToCloud();
-            document.getElementById('agent-name').value = ''; document.getElementById('agent-rank').value = ''; document.getElementById('agent-badge').value = '';
-        }
+window.saveNode = async function() {
+  const name = $('node-name').value;
+  const desc = $('node-desc').value;
+  let photo = '';
+  const photoInput = $('node-photo');
+  if (photoInput.files && photoInput.files[0]) {
+    try { photo = await compressImage(photoInput.files[0]); } catch (e) {}
+  }
+  const id = 'node_' + Date.now();
+  const newNode = { id, networkId: currentNetworkId, name, desc, photo, x: Math.round((100 - panX) / zoom), y: Math.round((100 - panY) / zoom) };
+  await saveData('nodes', id, newNode);
+  closeModals();
+  showToast('تمت إضافة العنصر للشبكة ✓');
+};
 
-        function saveSafehouse() {
-            if(!isAdmin) return;
-            const title = document.getElementById('sh-title').value;
-            const desc = document.getElementById('sh-desc').value;
-            if(!title || !desc) { alert('أدخل العنوان والوصف.'); return; }
-            appData.safehouses.push({ id: Date.now(), title, desc });
-            closeModals(); saveToCloud();
-            document.getElementById('sh-title').value = ''; document.getElementById('sh-desc').value = '';
-        }
+window.deleteNode = async function(id, event) {
+  event.stopPropagation();
+  if (!(await askConfirm('حذف هذا العنصر وكل الخيوط المرتبطة به؟'))) return;
+  if (db) {
+    await remove(ref(db, `nodes/${id}`));
+    const links = store.links || {};
+    for (const [lid, link] of Object.entries(links)) {
+      if (link.from === id || link.to === id) {
+        await remove(ref(db, `links/${lid}`));
+      }
+    }
+  }
+  drawNetwork();
+  showToast('تم حذف العنصر ✓');
+};
 
-        function saveRadio() {
-            if(!isAdmin) return;
-            const name = document.getElementById('rd-name').value;
-            const freq = document.getElementById('rd-freq').value;
-            if(!name || !freq) { alert('أدخل اسم القناة والتردد.'); return; }
-            appData.radios.push({ id: Date.now(), name, freq });
-            closeModals(); saveToCloud();
-            document.getElementById('rd-name').value = ''; document.getElementById('rd-freq').value = '';
-        }
+window.startConnecting = function(id, event) {
+  event.stopPropagation();
+  if (!connectingNodeId) {
+    connectingNodeId = id;
+    showToast('اختر العنصر الثاني لتوصيل الحبل بينهما 🧶');
+    drawNetwork();
+  } else {
+    if (connectingNodeId === id) {
+      connectingNodeId = null;
+      drawNetwork();
+      return;
+    }
+    const linkId = 'link_' + Date.now();
+    const newLink = { id: linkId, networkId: currentNetworkId, from: connectingNodeId, to: id };
+    saveData('links', linkId, newLink);
+    connectingNodeId = null;
+    drawNetwork();
+    showToast('تم توصيل الخيط بنجاح ✓');
+  }
+};
 
-        function saveReport() {
-            if(!isAdmin) return;
-            const title = document.getElementById('report-title').value;
-            const desc = document.getElementById('report-desc').value;
-            if(!title || !desc) { alert('أدخل العنوان والتفاصيل.'); return; }
-            const dateStr = new Date().toISOString().split('T')[0];
-            appData.reports.push({ id: Date.now(), title, desc, date: dateStr });
-            closeModals(); saveToCloud();
-            document.getElementById('report-title').value = ''; document.getElementById('report-desc').value = '';
-        }
+function initNetworkInteraction() {
+  const container = $('network-container');
 
-        function deleteItem(type, index) {
-            if(!isAdmin) return;
-            appData[type].splice(index, 1);
-            saveToCloud();
-        }
-    </script>
+  container.addEventListener('mousedown', e => {
+    if (e.target === container || e.target === $('network-canvas-layer') || e.target === $('network-inner')) {
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (isPanning) {
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    } else if (draggingNodeId) {
+      const nodes = store.nodes || {};
+      const node = nodes[draggingNodeId];
+      if (node) {
+        node.x = (e.clientX - startX - panX) / zoom;
+        node.y = (e.clientY - startY - panY) / zoom;
+        drawNetworkNodesPositions();
+        drawNetworkLines();
+      }
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    isPanning = false;
+    if (draggingNodeId) {
+      const nodes = store.nodes || {};
+      const node = nodes[draggingNodeId];
+      if (node && db) {
+        set(ref(db, `nodes/${draggingNodeId}`), node);
+      }
+      draggingNodeId = null;
+    }
+  });
+
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    if (e.deltaY < 0) {
+      zoom = Math.min(zoom * zoomFactor, 3);
+    } else {
+      zoom = Math.max(zoom / zoomFactor, 0.3);
+    }
+    updateTransform();
+  }, { passive: false });
+}
+
+function updateTransform() {
+  $('network-inner').style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  drawNetworkLines();
+}
+
+window.resetZoom = function() {
+  panX = 0; panY = 0; zoom = 1;
+  updateTransform();
+};
+
+function resizeCanvas() {
+  const canvas = $('network-canvas-layer');
+  const container = $('network-container');
+  if (!canvas || !container) return;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  drawNetworkLines();
+}
+
+function drawNetwork() {
+  drawNetworkNodes();
+  resizeCanvas();
+}
+
+function drawNetworkNodes() {
+  const inner = $('network-inner');
+  if (!inner) return;
+  const nodes = store.nodes || {};
+  const currentNodes = Object.values(nodes).filter(n => n.networkId === currentNetworkId);
+
+  inner.innerHTML = currentNodes.map(node => {
+    const isConn = connectingNodeId === node.id;
+    const imgTag = node.photo ? `<img src="${node.photo}" alt="">` : '';
+    return `
+      <div class="node-card ${isConn ? 'selected' : ''}" id="${node.id}" style="left:${node.x || 50}px; top:${node.y || 50}px" onmousedown="startDragNode('${node.id}', event)">
+        ${imgTag}
+        <h4>${esc(node.name)}</h4>
+        <p>${esc(node.desc)}</p>
+        <div class="node-actions">
+          <button class="btn-sm btn-edit" onclick="startConnecting('${node.id}', event)">${isConn ? 'إلغاء' : 'ربط 🧶'}</button>
+          <button class="btn-sm btn-danger" onclick="deleteNode('${node.id}', event)">حذف</button>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div class="empty" style="padding:40px;text-align:center">لا توجد عناصر في هذه الشبكة بعد. اضغط على "+ إضافة عنصر للشبكة"</div>';
+}
+
+function drawNetworkNodesPositions() {
+  const nodes = store.nodes || {};
+  Object.values(nodes).filter(n => n.networkId === currentNetworkId).forEach(node => {
+    const el = $(node.id);
+    if (el) {
+      el.style.left = node.x + 'px';
+      el.style.top = node.y + 'px';
+    }
+  });
+}
+
+window.startDragNode = function(id, e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG') return;
+  draggingNodeId = id;
+  const nodes = store.nodes || {};
+  const node = nodes[id];
+  if (node) {
+    startX = e.clientX - (node.x || 0) * zoom - panX;
+    startY = e.clientY - (node.y || 0) * zoom - panY;
+  }
+  e.stopPropagation();
+};
+
+function drawNetworkLines() {
+  const canvas = $('network-canvas-layer');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2.5 * zoom;
+  ctx.setLineDash([6, 4]);
+
+  const links = store.links || {};
+  const nodes = store.nodes || {};
+
+  Object.values(links).filter(l => l.networkId === currentNetworkId).forEach(link => {
+    const fromNode = nodes[link.from];
+    const toNode = nodes[link.to];
+    if (fromNode && toNode) {
+      const x1 = ((fromNode.x || 0) + 100) * zoom + panX;
+      const y1 = ((fromNode.y || 0) + 75) * zoom + panY;
+      const x2 = ((toNode.x || 0) + 100) * zoom + panX;
+      const y2 = ((toNode.y || 0) + 75) * zoom + panY;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  });
+}
+
+$('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+window.addEventListener('resize', resizeCanvas);
+</script>
 </body>
 </html>
