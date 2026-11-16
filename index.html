@@ -60,13 +60,14 @@ td{font-size:14px}
 .form-group textarea{height:80px}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .thumbs img{width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color);cursor:pointer}
-.video-wrap{position:relative;width:160px;height:95px;border-radius:6px;overflow:hidden;border:1px solid var(--secondary-glow);background:#000}
+.video-wrap{position:relative;width:180px;height:105px;border-radius:6px;overflow:hidden;border:1px solid var(--secondary-glow);background:#000}
 .video-wrap video{width:100%;height:100%;object-fit:cover;display:block}
 .video-expand-btn{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.78);color:var(--primary-glow);border:1px solid var(--primary-glow);border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;z-index:5}
+.video-missing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:8px;text-align:center;color:var(--danger);font-size:11px;gap:4px}
 .form-group input[type=file]{padding:6px;font-size:12px}
 #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:3000;justify-content:center;align-items:center;padding:20px;flex-direction:column;gap:12px}
 #lightbox img,#lightbox video{max-width:95%;max-height:85vh;border-radius:8px;border:1px solid var(--primary-glow);background:#000}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0d1117;border:1px solid var(--primary-glow);color:var(--primary-glow);padding:10px 22px;border-radius:8px;font-size:13px;z-index:4000;display:none;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0d1117;border:1px solid var(--primary-glow);color:var(--primary-glow);padding:10px 22px;border-radius:8px;font-size:13px;z-index:4000;display:none;box-shadow:0 4px 20px rgba(0,0,0,.6);text-align:center;max-width:90%}
 
 /* شبكة الجريمة التفاعلية */
 .network-container{position:relative;width:100%;height:650px;background:#05070a;border:1px solid var(--border-color);border-radius:8px;overflow:hidden;cursor:grab}
@@ -225,7 +226,7 @@ td{font-size:14px}
   <input type="hidden" id="rep-edit-id">
   <div class="form-group"><label>العنوان</label><input type="text" id="rep-title"></div>
   <div class="form-group"><label>التفاصيل</label><textarea id="rep-desc"></textarea></div>
-  <div class="form-group"><label>رفع صور أو فيديوهات من جهازك (تُرفع سحابياً للجميع)</label><input type="file" id="rep-photos" accept="image/*,video/*" multiple></div>
+  <div class="form-group"><label>رفع صور أو فيديوهات من جهازك (تُرفع سحابياً لتظهر للجميع)</label><input type="file" id="rep-photos" accept="image/*,video/*" multiple></div>
   <div class="form-group"><label>أو رابط فيديو خارجي (YouTube / Streamable / رابط مباشر - اختياري)</label><input type="url" id="rep-video-url" placeholder="https://..."></div>
   <button class="btn" id="rep-save-btn" onclick="saveRep()">حفظ</button>
   <button class="btn-sm btn-danger" style="width:100%;margin-top:8px" onclick="closeModals()">إلغاء</button>
@@ -284,7 +285,7 @@ function showToast(msg, isError = false) {
   t.style.color = isError ? 'var(--danger)' : 'var(--primary-glow)';
   t.style.display = 'block';
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 4000);
 }
 
 let confirmResolver = null;
@@ -299,7 +300,6 @@ window.closeConfirm = function(result) {
 };
 $('confirm-yes-btn').onclick = () => window.closeConfirm(true);
 
-// تخزين الفيديوهات محلياً بصيغتها الأصلية (Blob) بدون حد أقصى للحجم
 const localMediaDB = {
   dbInstance: null,
   async init() {
@@ -393,6 +393,85 @@ async function saveData(path, id, obj) {
   if (!db) { showToast('قاعدة البيانات غير متصلة.', true); return false; }
   try {
     if (id) {
+      await set(ref(db, `${path}/${id}`), obj);
+      return id;
+    } else {
+      const newRef = push(ref(db, path));
+      await set(newRef, { ...obj, createdAt: Date.now() });
+      return newRef.key;
+    }
+  } catch (e) {
+    showToast('تعذر الحفظ في القاعدة.', true);
+    return false;
+  }
+}
+
+window.del = async function (name, id) {
+  if (!db) return;
+  if (await askConfirm('هل أنت متأكد من الحذف؟')) {
+    try {
+      await remove(ref(db, name + '/' + id));
+      showToast('تم الحذف ✓');
+    } catch (e) {
+      showToast('تعذر الحذف.', true);
+    }
+  }
+};
+
+window.switchTab = function (tab, btn) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  $(tab + '-section').classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'network') { resizeCanvas(); drawNetwork(); }
+};
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const max = 800, ratio = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * ratio);
+        c.height = Math.round(img.height * ratio);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function readPhotos(inputId) {
+  const files = Array.from($(inputId).files || []).slice(0, 4);
+  const out = [];
+  for (const f of files) {
+    try { out.push(await compressImage(f)); } catch (e) {}
+  }
+  return out;
+}
+
+async function readReportMedia(inputId) {
+  const files = Array.from($(inputId).files || []);
+  const out = [];
+  for (const f of files) {
+    if (f.type.startsWith('video/')) {
+      out.push({ type: 'video', file: f });
+    } else if (f.type.startsWith('image/')) {
+      try {
+        const url = await compressImage(f);
+        out.push({ type: 'image', url });
+      } catch (e) {}
+    }
+  }
+  return out;
+}
+
 function extractEmbedUrl(url) {
   if (!url || typeof url !== 'string') return '';
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -403,28 +482,41 @@ function extractEmbedUrl(url) {
 }
 
 async function uploadVideoToCloud(file) {
-  // المحاولة الأولى: الرفع السحابي على Catbox (روابط دائمة تعمل على جميع الأجهزة)
+  // 1. Uguu.se (يدعم CORS من المتصفح مباشرة ويرجع رابط مباشر للفيديو)
   try {
     const fd1 = new FormData();
-    fd1.append('reqtype', 'fileupload');
-    fd1.append('fileToUpload', file);
-    const res1 = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: fd1 });
+    fd1.append('files[]', file);
+    const res1 = await fetch('https://uguu.se/upload', { method: 'POST', body: fd1 });
     if (res1.ok) {
-      const link = (await res1.text()).trim();
-      if (link.startsWith('http')) return link;
+      const json1 = await res1.json();
+      const link1 = json1?.files?.[0]?.url;
+      if (link1 && link1.startsWith('http')) return link1;
     }
   } catch (e) {}
 
-  // المحاولة الثانية الاحتياطية: tmpfiles.org
+  // 2. Tmpfiles.org (يدعم CORS ويرجع رابط تحميل مباشر)
   try {
     const fd2 = new FormData();
     fd2.append('file', file);
     const res2 = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd2 });
     if (res2.ok) {
-      const json = await res2.json();
-      if (json?.data?.url) {
-        return json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+      const json2 = await res2.json();
+      if (json2?.data?.url) {
+        return json2.data.url.replace(/^http:\/\//i, 'https://').replace('tmpfiles.org/', 'tmpfiles.org/dl/');
       }
+    }
+  } catch (e) {}
+
+  // 3. Litterbox (يدعم CORS لمدة 72 ساعة)
+  try {
+    const fd3 = new FormData();
+    fd3.append('reqtype', 'fileupload');
+    fd3.append('time', '72h');
+    fd3.append('fileToUpload', file);
+    const res3 = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd3 });
+    if (res3.ok) {
+      const link3 = (await res3.text()).trim();
+      if (link3.startsWith('http')) return link3;
     }
   } catch (e) {}
 
@@ -451,6 +543,10 @@ window.showVid = async function (srcOrId) {
   let finalSrc = srcOrId;
   if (typeof srcOrId === 'string' && srcOrId.startsWith('idb:')) {
     finalSrc = await localMediaDB.get(srcOrId.slice(4));
+    if (!finalSrc) {
+      showToast('هذا الفيديو قديم ومحفوظ على الجهاز الذي رفعه فقط. اضغط "تعديل" وأعد رفعه ليظهر للجميع.', true);
+      return;
+    }
   }
   if (!finalSrc) {
     showToast('تعذر تشغيل الفيديو.', true);
@@ -514,19 +610,24 @@ function renderReportMedia(rep) {
         </div>`;
       }
 
-      const safeSrc = isIdb ? '' : url;
       if (isIdb) {
         setTimeout(async () => {
-          const el = $(vidDomId);
-          if (el) {
-            const loaded = await localMediaDB.get(url.slice(4));
-            if (loaded) { el.src = loaded; el.load(); }
+          const wrap = $(vidDomId + '-wrap');
+          if (!wrap) return;
+          const loaded = await localMediaDB.get(url.slice(4));
+          if (loaded) {
+            wrap.innerHTML = `<button type="button" class="video-expand-btn" onclick="showVid('${esc(url)}')">تكبير ⛶</button>
+              <video src="${esc(loaded)}" controls playsinline preload="metadata"></video>`;
+          } else {
+            wrap.innerHTML = `<div class="video-missing"><span>⚠️ فيديو محلي قديم</span><span style="color:var(--text-muted);font-size:10px">اضغط "تعديل" وأعد رفعه ليظهر للجميع</span></div>`;
           }
         }, 0);
+        return `<div class="video-wrap" id="${vidDomId}-wrap"><div class="video-missing"><span style="color:var(--text-muted)">جاري التحقق...</span></div></div>`;
       }
+
       return `<div class="video-wrap">
         <button type="button" class="video-expand-btn" onclick="showVid('${esc(url)}')">تكبير ⛶</button>
-        <video id="${vidDomId}" ${safeSrc ? `src="${esc(safeSrc)}"` : ''} controls playsinline preload="metadata"></video>
+        <video id="${vidDomId}" src="${esc(url)}" controls playsinline preload="metadata"></video>
       </div>`;
     } else if (isImage) {
       return `<img src="${url}" alt="" onclick="showImg(this)">`;
@@ -538,7 +639,6 @@ function renderReportMedia(rep) {
 }
 
 function render() {
-  // الأفراد وعدد المتواجدين
   const onlineCount = store.agents.filter(a => a.status === 'online').length;
   if ($('online-count')) $('online-count').textContent = onlineCount;
 
@@ -548,17 +648,14 @@ function render() {
     return `<tr><td><code>${esc(ag.badge)}</code></td><td><strong>${esc(ag.name)}</strong></td><td>${esc(ag.rank)}</td><td><span class="badge-status ${cls}">${txt}</span></td><td><button class="btn-sm btn-edit" onclick="editAgent('${ag.id}')">تعديل</button> <button class="btn-sm btn-danger" onclick="del('agents','${ag.id}')">حذف</button></td></tr>`;
   }).join('') || '<tr><td colspan="5" class="empty">لا يوجد أفراد بعد</td></tr>';
 
-  // المواقع
   $('sh-grid').innerHTML = store.safehouses.map(sh =>
     `<div class="info-card"><h3>${esc(sh.title)}</h3>${thumbs(sh.photos)}<p>${esc(sh.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editSH('${sh.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('safehouses','${sh.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد مواقع بعد</div>';
 
-  // الترددات
   $('rd-grid').innerHTML = store.radios.map(rd =>
     `<div class="info-card"><h3>${esc(rd.name)}</h3><p>التردد: <code style="color:var(--primary-glow)">${esc(rd.freq)}</code></p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRD('${rd.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('radios','${rd.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد ترددات بعد</div>';
 
-  // التقارير
   $('rep-grid').innerHTML = store.reports.map(rep =>
     `<div class="info-card"><h3>${esc(rep.title)}</h3>${renderReportMedia(rep)}<p>${esc(rep.desc)}</p><div style="display:flex;gap:5px"><button class="btn-sm btn-edit" onclick="editRep('${rep.id}')">تعديل</button><button class="btn-sm btn-danger" onclick="del('reports','${rep.id}')">حذف</button></div></div>`
   ).join('') || '<div class="empty">لا توجد تقارير بعد</div>';
@@ -683,7 +780,7 @@ window.saveRep = async function() {
           if (cloudUrl) {
             finalMedia.push({ type: 'video', url: cloudUrl });
           } else {
-            showToast('تعذر الرفع السحابي، تم الحفظ محلياً فقط.', true);
+            showToast('فشل الرفع السحابي التلقائي. يمكنك لصق رابط الفيديو في حقل الرابط الخارجي.', true);
             const mediaKey = `vid_${Date.now()}_${i}`;
             await localMediaDB.put(mediaKey, item.file);
             finalMedia.push({ type: 'video', url: `idb:${mediaKey}` });
