@@ -264,39 +264,6 @@ import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstati
 
 const DATABASE_URL = "https://sid-outlaw-default-rtdb.firebaseio.com";
 
-// ===== رفع الفيديوهات (Cloudinary - مجاني) =====
-const CLOUD_NAME = "yvjbgzrp";       // مثال: "dxyz123abc"
-const UPLOAD_PRESET = "index.html"; // مثال: "sid_unsigned"
-// ================================================
-
-function cloudReady() { return !CLOUD_NAME.startsWith('PUT_') && !UPLOAD_PRESET.startsWith('PUT_'); }
-
-function uploadToCloud(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`);
-    xhr.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded / e.total * 100)); };
-    xhr.onload = () => {
-      try {
-        const r = JSON.parse(xhr.responseText);
-        if (xhr.status >= 200 && xhr.status < 300 && r.secure_url) resolve(r.secure_url);
-        else reject(new Error((r.error && r.error.message) || 'upload failed'));
-      } catch (e) { reject(e); }
-    };
-    xhr.onerror = () => reject(new Error('network'));
-    xhr.send(fd);
-  });
-}
-
-// نسخة H.264/MP4 متوافقة مع كل الأجهزة (تصوير الآيفون HEVC ما يشتغل في كروم/ويندوز)
-function mp4Url(url) {
-  if (typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/video/upload/')) return url;
-  return url.replace('/video/upload/', '/video/upload/vc_h264,ac_aac/').replace(/\.[a-z0-9]+(\?.*)?$/i, '.mp4');
-}
-
 let db = null;
 const store = { agents: [], safehouses: [], radios: [], reports: [], networks: {}, nodes: {}, links: {} };
 let currentNetworkId = null;
@@ -460,12 +427,10 @@ async function readReportMedia(inputId) {
   const out = [];
   for (const f of files) {
     if (f.type.startsWith('video/')) {
-      if (!cloudReady()) { showToast('رفع الفيديو غير مفعّل: ضع بيانات Cloudinary في الملف.', true); continue; }
-      if (f.size > 95 * 1024 * 1024) { showToast('الفيديو أكبر من 95 ميغا: ' + f.name, true); continue; }
       try {
-        const url = await uploadToCloud(f, p => showToast(`جاري رفع الفيديو ${p}% ...`));
-        out.push({ type: 'video', url });
-      } catch (e) { showToast('فشل رفع الفيديو: ' + (e.message || ''), true); }
+        const dataUrl = await fileToDataUrl(f);
+        out.push({ type: 'video', url: dataUrl });
+      } catch (e) {}
     } else if (f.type.startsWith('image/')) {
       try {
         const url = await compressImage(f);
@@ -522,8 +487,7 @@ window.showVid = async function (src) {
   }
 
   if (vid) {
-    vid.onerror = () => { if (vid.getAttribute('src') !== src) vid.src = src; };
-    vid.src = mp4Url(src);
+    vid.src = src;
     vid.style.display = 'block';
     $('lightbox').style.display = 'flex';
     vid.load();
@@ -564,7 +528,7 @@ function renderReportMedia(rep) {
 
       return `<div class="video-wrap">
         <button type="button" class="video-expand-btn" onclick="showVid('${esc(url)}')">تكبير ⛶</button>
-        <video src="${esc(mp4Url(url))}" data-o="${esc(url)}" onerror="if(this.dataset.o&&this.getAttribute('src')!==this.dataset.o)this.src=this.dataset.o" controls playsinline preload="metadata"></video>
+        <video src="${esc(url)}" controls playsinline preload="metadata"></video>
       </div>`;
     } else if (isImage) {
       return `<img src="${url}" alt="" onclick="showImg(this)">`;
@@ -720,7 +684,7 @@ window.saveRep = async function() {
       title: $('rep-title').value,
       desc: $('rep-desc').value,
       media: finalMedia,
-      photos: finalMedia.filter(m => typeof m === 'string' || m.type !== 'video').map(m => typeof m === 'string' ? m : m.url)
+      photos: finalMedia.map(m => typeof m === 'string' ? m : m.url)
     };
     if (id) data.createdAt = existingRep?.createdAt || Date.now();
 
